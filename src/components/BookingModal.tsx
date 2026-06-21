@@ -88,12 +88,20 @@ export default function BookingModal({ salon, isOpen, onClose, initialService }:
       status: 'confirmed'
     };
 
-    // Save to localStorage
+    // Save to localStorage & database sync
     try {
       const savedBookingsStr = localStorage.getItem('glamblr_bookings');
       const savedBookings = savedBookingsStr ? JSON.parse(savedBookingsStr) : [];
       savedBookings.unshift(newBooking);
       localStorage.setItem('glamblr_bookings', JSON.stringify(savedBookings));
+
+      // POST to backend API for shop manager & master admin visibility
+      fetch('/api/bookings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newBooking)
+      }).catch(err => console.error("Database sync delay", err));
+      
     } catch (err) {
       console.error('Failed to preserve booking locally', err);
     }

@@ -34,8 +34,16 @@ export default function StatsSection() {
       observer.observe(containerRef.current);
     }
 
+    // Safety timeout fallback to guarantee animation starts in nested iFrames
+    const timer = setTimeout(() => {
+      if (!hasTriggered) {
+        setHasTriggered(true);
+      }
+    }, 1000);
+
     return () => {
       observer.disconnect();
+      clearTimeout(timer);
     };
   }, [hasTriggered]);
 
@@ -67,20 +75,20 @@ export default function StatsSection() {
   }, [hasTriggered]);
 
   return (
-    <section ref={containerRef} id="stats_section_grid" className="relative py-16 px-4 max-w-7xl mx-auto z-10">
+    <section ref={containerRef} id="stats_section_grid" className="relative py-16 px-4 max-w-7xl mx-auto z-10 transition-colors">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
         {STATS_DATA.map((stat, idx) => (
           <div
             key={idx}
-            className="group relative overflow-hidden bg-white/80 dark:bg-[#12121E]/60 border border-[#E1DBCE] dark:border-indigo-950/60 rounded-2xl p-6 text-center transform hover:-translate-y-1.5 transition-all duration-300 hover:shadow-md dark:hover:shadow-[0_0_30px_rgba(212,175,55,0.06)]"
+            className="group relative overflow-hidden bg-white dark:bg-[#161625] border border-[#E1DBCE] dark:border-indigo-950 rounded-2xl p-6 text-center transform hover:-translate-y-1.5 transition-all duration-300 hover:shadow-lg dark:hover:shadow-[0_0_35px_rgba(251,191,36,0.08)]"
           >
             {/* Subtle inner gold accent lines */}
-            <div className="absolute top-0 left-0 w-2 h-2 border-t-2 border-l-2 border-[#D4AF37]/35 dark:border-amber-500/30 opacity-45 group-hover:opacity-100 transition-opacity"></div>
-            <div className="absolute top-0 right-0 w-2 h-2 border-t-2 border-r-2 border-[#D4AF37]/35 dark:border-amber-500/30 opacity-45 group-hover:opacity-100 transition-opacity"></div>
-            <div className="absolute bottom-0 left-0 w-2 h-2 border-b-2 border-l-2 border-[#D4AF37]/35 dark:border-amber-500/30 opacity-45 group-hover:opacity-100 transition-opacity"></div>
-            <div className="absolute bottom-0 right-0 w-2 h-2 border-b-2 border-r-2 border-[#D4AF37]/35 dark:border-amber-500/30 opacity-45 group-hover:opacity-100 transition-opacity"></div>
+            <div className="absolute top-0 left-0 w-2 h-2 border-t-2 border-l-2 border-[#D4AF37] dark:border-amber-400 opacity-55 group-hover:opacity-100 transition-opacity"></div>
+            <div className="absolute top-0 right-0 w-2 h-2 border-t-2 border-r-2 border-[#D4AF37] dark:border-amber-400 opacity-55 group-hover:opacity-100 transition-opacity"></div>
+            <div className="absolute bottom-0 left-0 w-2 h-2 border-b-2 border-l-2 border-[#D4AF37] dark:border-amber-400 opacity-55 group-hover:opacity-100 transition-opacity"></div>
+            <div className="absolute bottom-0 right-0 w-2 h-2 border-b-2 border-r-2 border-[#D4AF37] dark:border-amber-400 opacity-55 group-hover:opacity-100 transition-opacity"></div>
 
-            <div className="font-serif italic text-3xl md:text-4xl lg:text-5xl font-extrabold text-[#A07D1A] dark:text-amber-400">
+            <div className="font-serif italic text-3xl md:text-4xl lg:text-5xl font-black text-[#805C06] dark:text-amber-400">
               {counts[idx].toLocaleString(undefined, {
                 minimumFractionDigits: stat.decimals ? 1 : 0,
                 maximumFractionDigits: stat.decimals ? 1 : 0
@@ -88,7 +96,7 @@ export default function StatsSection() {
               {stat.suffix}
             </div>
             
-            <p className="mt-2.5 text-[10.5px] md:text-xs text-[#5C534C] dark:text-slate-400 tracking-widest uppercase font-extrabold font-mono">
+            <p className="mt-2.5 text-[11px] md:text-xs text-[#5C534C] dark:text-slate-300 tracking-widest uppercase font-extrabold font-mono">
               {stat.label}
             </p>
           </div>

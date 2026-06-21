@@ -9,6 +9,7 @@ interface NavbarProps {
   onOpenBookingsDrawer: () => void;
   appDarkMode?: boolean;
   onToggleDarkMode?: () => void;
+  onOpenPartners?: () => void;
 }
 
 export default function Navbar({ 
@@ -18,7 +19,8 @@ export default function Navbar({
   bookingsCount, 
   onOpenBookingsDrawer,
   appDarkMode = false,
-  onToggleDarkMode
+  onToggleDarkMode,
+  onOpenPartners
 }: NavbarProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -31,6 +33,8 @@ export default function Navbar({
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const isTransparentHero = currentPage === 'home' && !isScrolled;
+
   return (
     <nav
       id="glamblr_navbar"
@@ -39,7 +43,7 @@ export default function Navbar({
           ? appDarkMode
             ? 'bg-[#0E0E15]/95 backdrop-blur-md border-b border-indigo-950/60 py-3.5 shadow-md'
             : 'bg-[#FBF9F4]/90 backdrop-blur-md border-b border-[rgba(160,125,26,0.15)] py-3.5 shadow-sm'
-          : 'bg-transparent py-6'
+          : 'bg-slate-950/45 backdrop-blur-md border-b border-white/5 py-4 hover:bg-slate-950/65'
       }`}
     >
       <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
@@ -54,15 +58,15 @@ export default function Navbar({
         >
           {/* Custom vector glowing golden logo */}
           <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#A07D1A] via-[#D4AF37] to-[#F5D97F] p-[1.5px] shadow-sm group-hover:scale-105 transition-all">
-            <div className={`w-full h-full rounded-[10px] flex items-center justify-center ${appDarkMode ? 'bg-[#12121e]' : 'bg-[#FCFAF6]'}`}>
-              <span className="font-serif text-[#A07D1A] font-bold text-lg tracking-tighter italic">G</span>
+            <div className={`w-full h-full rounded-[10px] flex items-center justify-center ${appDarkMode || isTransparentHero ? 'bg-[#12121e]' : 'bg-[#FCFAF6]'}`}>
+              <span className={`font-serif font-bold text-lg tracking-tighter italic ${appDarkMode || isTransparentHero ? 'text-amber-300' : 'text-[#A07D1A]'}`}>G</span>
             </div>
           </div>
           <div className="flex flex-col">
             <h1 className="font-serif italic text-2xl font-bold bg-gradient-to-r from-[#805C06] via-[#A07D1A] to-[#D4AF37] bg-clip-text text-transparent tracking-wide leading-none">
               GlamBlr
             </h1>
-            <span className={`text-[7.5px] tracking-[0.35em] uppercase font-bold mt-1 leading-none ${appDarkMode ? 'text-slate-400' : 'text-[#5C534C]'}`}>
+            <span className={`text-[7.5px] tracking-[0.35em] uppercase font-bold mt-1 leading-none ${appDarkMode || isTransparentHero ? 'text-slate-400' : 'text-[#5C534C]'}`}>
               Bengaluru Luxe
             </span>
           </div>
@@ -79,15 +83,19 @@ export default function Navbar({
               onClick={() => onNavigate(item.id)}
               className={`text-xs uppercase tracking-[0.15em] font-semibold hover:text-[#A07D1A] transition-colors cursor-pointer relative py-1 ${
                 currentPage === item.id 
-                  ? 'text-[#A07D1A]' 
-                  : appDarkMode 
-                    ? 'text-slate-300' 
+                  ? (appDarkMode || isTransparentHero)
+                    ? 'text-amber-400'
+                    : 'text-[#A07D1A]' 
+                  : (appDarkMode || isTransparentHero) 
+                    ? 'text-slate-200 hover:text-white' 
                     : 'text-[#4E443C]'
               }`}
             >
               {item.label}
               {currentPage === item.id && (
-                <span className="absolute bottom-0 left-0 right-0 h-[1.5px] bg-[#A07D1A] rounded-full" />
+                <span className={`absolute bottom-0 left-0 right-0 h-[1.5px] rounded-full ${
+                  (appDarkMode || isTransparentHero) ? 'bg-amber-400' : 'bg-[#A07D1A]'
+                }`} />
               )}
             </button>
           ))}
@@ -95,21 +103,25 @@ export default function Navbar({
           {/* Style DNA Trigger link with modern psychology spark icon */}
           <button
             onClick={onOpenQuiz}
-            className="flex items-center gap-1.5 text-xs text-[#A07D1A] hover:text-[#805C06] font-bold uppercase tracking-[0.15em] cursor-pointer transition-all hover:-translate-y-0.5"
+            className={`flex items-center gap-1.5 text-xs font-bold uppercase tracking-[0.15em] cursor-pointer transition-all hover:-translate-y-0.5 ${
+              isTransparentHero 
+                ? 'text-amber-400 hover:text-amber-300' 
+                : 'text-[#A07D1A] hover:text-[#805C06]'
+            }`}
           >
-            <Sparkles className="w-3.5 h-3.5 text-[#A07D1A]" /> AI Style DNA
+            <Sparkles className={`w-3.5 h-3.5 ${isTransparentHero ? 'text-amber-400' : 'text-[#A07D1A]'}`} /> AI Style DNA
           </button>
 
           {/* Bookings shortcut */}
           <button
             onClick={onOpenBookingsDrawer}
             className={`relative p-1.5 rounded-full border transition-all cursor-pointer flex items-center gap-1.5 px-3 shadow-2xs ${
-              appDarkMode 
-                ? 'border-indigo-950/60 hover:border-amber-500/50 bg-[#161625] text-slate-300 hover:text-white' 
+              appDarkMode || isTransparentHero 
+                ? 'border-white/10 hover:border-amber-400/50 bg-white/[0.06] text-slate-300 hover:text-white' 
                 : 'border-[#D4AF37]/20 hover:border-[#A07D1A] bg-[#FAF6F0] text-[#4E443C] hover:text-[#A07D1A]'
             }`}
           >
-            <Clock className="w-3.5 h-3.5 text-[#A07D1A]" />
+            <Clock className={`w-3.5 h-3.5 ${appDarkMode || isTransparentHero ? 'text-slate-300' : 'text-[#A07D1A]'}`} />
             <span className="text-[10px] uppercase tracking-wider font-semibold">Bookings</span>
             {bookingsCount > 0 && (
               <span className="bg-[#A07D1A] text-white font-mono text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center animate-pulse">
@@ -123,19 +135,32 @@ export default function Navbar({
             <button
               onClick={onToggleDarkMode}
               className={`p-1.5 rounded-full border transition-all cursor-pointer ${
-                appDarkMode 
-                  ? 'border-indigo-950/60 bg-[#161625] text-amber-400 hover:bg-[#1C1C2D]' 
+                appDarkMode || isTransparentHero 
+                  ? 'border-white/10 bg-white/[0.06] text-amber-400 hover:bg-white/[0.12]' 
                   : 'border-[#D4AF37]/20 bg-[#FAF6F0] text-indigo-900 hover:bg-slate-100'
               }`}
               title="Toggle Day/Night Aesthetics"
             >
-              {appDarkMode ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
+              {appDarkMode || isTransparentHero ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
             </button>
           )}
         </div>
 
         {/* ACTIONS */}
         <div className="hidden md:flex items-center gap-3">
+          {onOpenPartners && (
+            <button
+              onClick={onOpenPartners}
+              className={`px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider font-extrabold cursor-pointer border transition-all ${
+                appDarkMode || isTransparentHero
+                  ? 'border-white/10 bg-white/[0.05] text-amber-400 hover:border-amber-400'
+                  : 'border-[#E1DBCE] bg-[#FAF7F2] text-[#805C06] hover:border-[#A07D1A]'
+              }`}
+            >
+              👑 Partner Room
+            </button>
+          )}
+
           <button
             onClick={() => onNavigate('explore')}
             className="px-5 py-2.5 bg-gradient-to-r from-[#A07D1A] to-[#D4AF37] text-white font-bold rounded-xl text-xs uppercase tracking-[0.12em] hover:shadow-md transition-all cursor-pointer"
@@ -150,20 +175,20 @@ export default function Navbar({
             <button
               onClick={onToggleDarkMode}
               className={`p-1.5 rounded-xl border ${
-                appDarkMode ? 'border-slate-800 bg-slate-900 text-amber-400' : 'border-[#D4AF37]/20 bg-[#FAF6F0] text-[#4E443C]'
+                appDarkMode || isTransparentHero ? 'border-white/10 bg-white/[0.06] text-amber-400' : 'border-[#D4AF37]/20 bg-[#FAF6F0] text-[#4E443C]'
               }`}
             >
-              {appDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              {appDarkMode || isTransparentHero ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </button>
           )}
 
           <button
             onClick={onOpenBookingsDrawer}
             className={`relative p-1.5 rounded-full border ${
-              appDarkMode ? 'border-slate-850 bg-slate-900 text-slate-300' : 'border-[#D4AF37]/20 bg-[#FAF6F0] text-[#4E443C]'
+              appDarkMode || isTransparentHero ? 'border-white/10 bg-white/[0.06] text-slate-300' : 'border-[#D4AF37]/20 bg-[#FAF6F0] text-[#4E443C]'
             }`}
           >
-            <Clock className="w-4 h-4 text-[#A07D1A]" />
+            <Clock className={`w-4 h-4 ${appDarkMode || isTransparentHero ? 'text-slate-300' : 'text-[#A07D1A]'}`} />
             {bookingsCount > 0 && (
               <span className="absolute -top-1 -right-1 bg-[#A07D1A] text-white text-[8px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center">
                 {bookingsCount}
@@ -174,10 +199,14 @@ export default function Navbar({
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className={`p-1.5 rounded-xl border ${
-              appDarkMode ? 'border-slate-850 bg-slate-900 text-slate-300' : 'border-[#D4AF37]/20 bg-[#FAF6F0] text-[#4E443C]'
+              appDarkMode || isTransparentHero ? 'border-white/10 bg-white/[0.06] text-slate-300' : 'border-[#D4AF37]/20 bg-[#FAF6F0] text-[#4E443C]'
             }`}
           >
-            {mobileMenuOpen ? <X className="w-5 h-5 text-[#A07D1A]" /> : <Menu className="w-5 h-5 text-[#A07D1A]" />}
+            {mobileMenuOpen ? (
+              <X className={`w-5 h-5 ${appDarkMode || isTransparentHero ? 'text-amber-400' : 'text-[#A07D1A]'}`} />
+            ) : (
+              <Menu className={`w-5 h-5 ${appDarkMode || isTransparentHero ? 'text-amber-400' : 'text-[#A07D1A]'}`} />
+            )}
           </button>
         </div>
 
@@ -186,7 +215,7 @@ export default function Navbar({
       {/* MOBILE NAV OVERLAY */}
       {mobileMenuOpen && (
         <div className={`absolute top-[100%] left-0 right-0 py-6 px-6 md:hidden space-y-4 shadow-lg flex flex-col items-stretch text-center z-50 ${
-          appDarkMode ? 'bg-[#0E0E15] border-b border-slate-900 text-white' : 'bg-[#FBF9F4] border-b border-[rgba(160,125,26,0.15)] text-slate-800'
+          appDarkMode || isTransparentHero ? 'bg-[#0E0E15] border-b border-slate-900 text-white' : 'bg-[#FBF9F4] border-b border-[rgba(160,125,26,0.15)] text-slate-800'
         }`}>
           <button
             onClick={() => {
@@ -195,7 +224,11 @@ export default function Navbar({
             }}
             className={`text-xs uppercase tracking-widest font-semibold py-2 border-b ${
               appDarkMode ? 'border-slate-900' : 'border-gray-100'
-            } ${currentPage === 'home' ? 'text-[#A07D1A]' : ''}`}
+            } ${
+              currentPage === 'home' 
+                ? (appDarkMode || isTransparentHero) ? 'text-amber-400 font-bold' : 'text-[#A07D1A]' 
+                : (appDarkMode || isTransparentHero) ? 'text-slate-300' : 'text-slate-700'
+            }`}
           >
             Home
           </button>
@@ -206,7 +239,11 @@ export default function Navbar({
             }}
             className={`text-xs uppercase tracking-widest font-semibold py-2 border-b ${
               appDarkMode ? 'border-slate-900' : 'border-gray-100'
-            } ${currentPage === 'explore' ? 'text-[#A07D1A]' : ''}`}
+            } ${
+              currentPage === 'explore' 
+                ? (appDarkMode || isTransparentHero) ? 'text-amber-400 font-bold' : 'text-[#A07D1A]' 
+                : (appDarkMode || isTransparentHero) ? 'text-slate-300' : 'text-slate-700'
+            }`}
           >
             Discovery Lounge
           </button>
@@ -215,12 +252,27 @@ export default function Navbar({
               onOpenQuiz();
               setMobileMenuOpen(false);
             }}
-            className={`flex items-center justify-center gap-2 text-xs font-bold text-[#A07D1A] uppercase tracking-widest py-2 border-b ${
+            className={`flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-widest py-2 border-b ${
               appDarkMode ? 'border-slate-900' : 'border-gray-100'
+            } ${
+              (appDarkMode || isTransparentHero) ? 'text-amber-400' : 'text-[#A07D1A]'
             }`}
           >
-            <Sparkles className="w-4 h-4 text-[#A07D1A]" /> AI Style DNA
+            <Sparkles className={`w-4 h-4 ${(appDarkMode || isTransparentHero) ? 'text-amber-400' : 'text-[#A07D1A]'}`} /> AI Style DNA
           </button>
+          {onOpenPartners && (
+            <button
+              onClick={() => {
+                onOpenPartners();
+                setMobileMenuOpen(false);
+              }}
+              className={`text-xs uppercase tracking-widest font-extrabold text-amber-500 py-2 border-b ${
+                appDarkMode ? 'border-slate-900' : 'border-gray-100'
+              }`}
+            >
+              👑 PARTNERS PORTAL
+            </button>
+          )}
           <button
             onClick={() => {
               onNavigate('explore');

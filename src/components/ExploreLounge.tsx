@@ -11,6 +11,7 @@ interface ExploreLoungeProps {
   initialArea?: string;
   initialService?: string;
   initialPrice?: string;
+  salons?: Salon[];
 }
 
 export default function ExploreLounge({ 
@@ -19,7 +20,8 @@ export default function ExploreLounge({
   initialSearchQuery = '',
   initialArea = 'All',
   initialService = 'All',
-  initialPrice = 'All'
+  initialPrice = 'All',
+  salons = LUX_SALONS
 }: ExploreLoungeProps) {
   const [searchQuery, setSearchQuery] = useState(initialSearchQuery);
   const [activeArea, setActiveArea] = useState(initialArea || 'All');
@@ -98,7 +100,7 @@ export default function ExploreLounge({
   const filteredSalons = useMemo(() => {
     const { area, service, price, rating, sort } = filtersAndSort;
 
-    let items = [...LUX_SALONS];
+    let items = [...salons];
 
     // 1. Text Search Input (Fuzzy matches name, area, specialties, descriptions)
     if (searchQuery.trim() !== '') {

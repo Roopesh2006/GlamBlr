@@ -17,9 +17,20 @@ import ExploreLounge from './components/ExploreLounge';
 import SalonDetail from './components/SalonDetail';
 import SalonLobby from './components/3d/SalonLobby';
 
+// New luxury overlays and integrations
+import VideoScrollHero from './components/VideoScrollHero';
+import InteractiveMap from './components/InteractiveMap';
+import ConciergeChatBot from './components/ConciergeChatBot';
+import AdminPortal from './components/AdminPortal';
+
 export default function App() {
   const [currentPage, setCurrentPage] = useState<'home' | 'explore' | 'salon-detail'>('home');
   const [selectedSalonId, setSelectedSalonId] = useState<string | null>(null);
+
+  // Real-time server-synced parameters
+  const [salons, setSalons] = useState<Salon[]>(LUX_SALONS);
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [isAdminPortalOpen, setIsAdminPortalOpen] = useState(false);
   
   // Custom global light/dark theme toggle
   const [appDarkMode, setAppDarkMode] = useState<boolean>(() => {
@@ -67,6 +78,25 @@ export default function App() {
   const [heroSearchService, setHeroSearchService] = useState('All');
   const [heroSearchPrice, setHeroSearchPrice] = useState('All');
 
+  // Fetch salons and reservation logs from fullstack backend
+  const fetchSalonsAndBookings = async () => {
+    try {
+      const resSalons = await fetch('/api/salons');
+      if (resSalons.ok) {
+        const dataSalons = await resSalons.json();
+        setSalons(dataSalons);
+      }
+      const resBookings = await fetch('/api/bookings');
+      if (resBookings.ok) {
+        const dataBookings = await resBookings.json();
+        setBookings(dataBookings);
+        setBookingsCount(dataBookings.length);
+      }
+    } catch (err) {
+      console.error("Error loading server-synced parameters:", err);
+    }
+  };
+
   useEffect(() => {
     // Calculated Greeting
     const hours = new Date().getHours();
@@ -78,9 +108,12 @@ export default function App() {
       setTimeOfDayGreeting("Good Evening, Beautiful ✦");
     }
 
-    // Initialize bookings count
-    updateBookingsCount();
-  }, []);
+    // Load initial listings & sets interval poll to sync queues
+    fetchSalonsAndBookings();
+    const interval = setInterval(fetchSalonsAndBookings, 8000);
+
+    return () => clearInterval(interval);
+  }, [bookingsRefreshToggle]);
 
   // Synchronize dark mode state to document root for global components and styles
   useEffect(() => {
@@ -123,8 +156,8 @@ export default function App() {
   // Retrieve active selected salon object
   const activeSalon = useMemo(() => {
     if (!selectedSalonId) return null;
-    return LUX_SALONS.find((s) => s.id === selectedSalonId) || null;
-  }, [selectedSalonId]);
+    return salons.find((s) => s.id === selectedSalonId) || null;
+  }, [selectedSalonId, salons]);
 
   // Handle direct "Book Now" clicked on cards
   const handleOpenBooking = (salon: Salon, service?: Service) => {
@@ -151,7 +184,7 @@ export default function App() {
   ];
 
   return (
-    <div className={`relative min-h-screen selection:bg-[#D4AF37] selection:text-black transition-colors duration-300 overflow-hidden ${
+    <div className={`relative min-h-screen selection:bg-[#D4AF37] selection:text-black transition-colors duration-300 ${
       appDarkMode ? 'bg-[#0E0E15] text-[#FCFAF7] dark' : 'text-[#1E1A17] bg-[#FBF9F4]'
     }`}>
       
@@ -167,148 +200,122 @@ export default function App() {
         onOpenBookingsDrawer={() => setIsBookingsOpen(true)}
         appDarkMode={appDarkMode}
         onToggleDarkMode={toggleDarkMode}
+        onOpenPartners={() => setIsAdminPortalOpen(true)}
       />
 
       {/* 3. MAIN SWAP ROUTING SECTIONS */}
       {currentPage === 'home' && (
         <div className="animate-fadeIn">
           
-          {/* [A] HERO SECTION */}
-          <section id="hero_landing" className="relative min-h-screen pt-28 pb-12 flex flex-col justify-center px-6 md:px-12 max-w-7xl mx-auto z-10">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+          {/* [A] CINEMATIC VIDEO SCROLL HERO */}
+          <VideoScrollHero
+            onExploreClick={() => {
+              const target = document.getElementById('discovery_lounge_anchor');
+              if (target) {
+                target.scrollIntoView({ behavior: 'smooth' });
+              }
+            }}
+            onJoinClick={() => setIsAdminPortalOpen(true)}
+            appDarkMode={appDarkMode}
+          />
+
+          {/* [B] CORE MARKETPLACE CONSOLE & SEARCH BLOCK */}
+          <section id="discovery_lounge_anchor" className="relative py-12 z-10">
+            <div className="max-w-4xl mx-auto px-6">
               
-              {/* Left Hero side: typography & high-utility search console */}
-              <div className="lg:col-span-6 text-left space-y-6">
-                <div className="space-y-3">
-                  <span
-                    id="time_greeting_eyebrow"
-                    className="inline-block text-xs font-extrabold text-[#A07D1A] tracking-[0.3em] uppercase bg-[#FAF6F0] border border-[#D4AF37]/40 rounded-full px-4 text-center py-1.5 animate-pulse"
-                  >
-                    {timeOfDayGreeting}
+              {/* HIGH UTILITY SLOTS SEARCH CONSOLE (The Marketplace Core) */}
+              <div className="bg-white dark:bg-[#161625] border border-[#E1DBCE] dark:border-indigo-950 rounded-2xl p-6 md:p-8 space-y-5 shadow-lg dark:shadow-[0_12px_40px_rgba(0,0,0,0.4)] transition-all">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 gap-2">
+                  <span className="text-[10.5px] font-mono text-[#A07D1A] dark:text-amber-400 font-extrabold tracking-widest uppercase">
+                    ⚡ Secure Real-Time Reservation
                   </span>
+                  <span className="self-start px-2 py-0.5 bg-emerald-500/10 text-emerald-800 dark:text-emerald-400 border border-emerald-500/25 rounded text-[9px] font-mono font-extrabold uppercase tracking-widest">
+                    🟢 142 Slots Ready Today
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   
-                  {/* Subtle Color Psychology Introduction badge */}
-                  <div className="flex flex-wrap items-center gap-2 text-[10px] font-mono text-[#A07D1A] tracking-wider uppercase">
-                    <span className="text-slate-500 font-bold">PSYCHOLOGY CODES:</span>
-                    <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-[#10B981]" /> Healing</span>
-                    <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-[#A07D1A]" /> Prestige</span>
-                    <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-[#1E3F66]" /> Trust</span>
-                    <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-[#B54B5E]" /> Sacred</span>
-                  </div>
-
-                  <h2 className="font-serif italic text-4xl md:text-5xl lg:text-6xl font-extrabold text-[#1E1A17] dark:text-white leading-[1.05] tracking-tight animate-fadeIn">
-                    Couture Care.<br />
-                    <span className="bg-gradient-to-r from-[#A07D1A] via-[#D4AF37] to-[#805C06] dark:from-amber-400 dark:via-[#F5D97F] dark:to-[#A07D1A] bg-clip-text text-transparent font-normal">
-                      Verified Slots.
-                    </span>
-                  </h2>
-                </div>
-                
-                <p className="text-xs md:text-sm text-[#5C534C] dark:text-slate-300 leading-relaxed max-w-xl">
-                  Indulge in Bangalore’s hand-audited luxury lounge marketplace. Instantly find certified salon slots, compare Direct Parity prices, and filter hair, skin, and spa routines by clinical prestige and art metrics.
-                </p>
-
-                {/* HIGH UTILITY SLOTS SEARCH CONSOLE (The Marketplace Core) */}
-                <div className="bg-white/95 dark:bg-[#12121E]/95 border border-[#E1DBCE] dark:border-indigo-950/60 rounded-2xl p-5 md:p-6 space-y-4 shadow-[0_8px_30px_rgb(160,125,26,0.03)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.35)] transition-colors">
-                  <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800/20 pb-2">
-                    <span className="text-[10px] font-mono text-slate-400 dark:text-slate-400 font-extrabold tracking-widest uppercase">
-                      ⚡ Secure Real-Time Reservation
-                    </span>
-                    <span className="px-2 py-0.5 bg-[#10B981]/15 text-[#065F46] dark:text-emerald-400 border border-[#10B981]/25 rounded text-[8.5px] font-mono font-extrabold uppercase tracking-widest">
-                      🟢 142 Slots Ready Today
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
-                    
-                    {/* Location drop-selector */}
-                    <div className="flex flex-col gap-1.5 text-left">
-                      <label className="text-[9.5px] font-mono uppercase tracking-widest text-[#A07D1A] dark:text-amber-500 font-extrabold">
-                        Location / Area
-                      </label>
-                      <select 
-                        value={heroSearchArea} 
-                        onChange={(e) => setHeroSearchArea(e.target.value)}
-                        className="bg-white dark:bg-[#181829] border border-[#E1DBCE] dark:border-indigo-950/45 hover:border-[#A07D1A] dark:hover:border-amber-500/80 rounded-lg p-2 text-xs text-slate-800 dark:text-slate-200 focus:outline-none transition-all cursor-pointer"
-                      >
-                        <option value="All" className="text-slate-800 dark:bg-[#12121E]">Bengaluru (All Areas)</option>
-                        <option value="Indiranagar" className="text-slate-800 dark:bg-[#12121E]">Indiranagar</option>
-                        <option value="Koramangala" className="text-slate-800 dark:bg-[#12121E]">Koramangala</option>
-                        <option value="Whitefield" className="text-slate-800 dark:bg-[#12121E]">Whitefield</option>
-                        <option value="Jayanagar" className="text-slate-800 dark:bg-[#12121E]">Jayanagar</option>
-                        <option value="HSR Layout" className="text-slate-800 dark:bg-[#12121E]">HSR Layout</option>
-                        <option value="Banaswadi" className="text-slate-800 dark:bg-[#12121E]">Banaswadi</option>
-                      </select>
-                    </div>
-
-                    {/* Service/Specialty category drop-selector */}
-                    <div className="flex flex-col gap-1.5 text-left">
-                      <label className="text-[9.5px] font-mono uppercase tracking-widest text-[#A07D1A] dark:text-amber-500 font-extrabold">
-                        Specialty Care
-                      </label>
-                      <select 
-                        value={heroSearchService} 
-                        onChange={(e) => setHeroSearchService(e.target.value)}
-                        className="bg-white dark:bg-[#181829] border border-[#E1DBCE] dark:border-indigo-950/45 hover:border-[#A07D1A] dark:hover:border-amber-500/80 rounded-lg p-2 text-xs text-slate-800 dark:text-slate-200 focus:outline-none transition-all cursor-pointer"
-                      >
-                        <option value="All" className="text-slate-800 dark:bg-[#12121E]">All Specialties</option>
-                        <option value="Hair" className="text-slate-800 dark:bg-[#12121E]">Hair (Balayage/Botox)</option>
-                        <option value="Skin" className="text-slate-800 dark:bg-[#12121E]">Skin (Facial/Clinic)</option>
-                        <option value="Nails" className="text-slate-800 dark:bg-[#12121E]">Nails (Art/Ext)</option>
-                        <option value="Bridal" className="text-slate-800 dark:bg-[#12121E]">Traditional Bridal</option>
-                        <option value="Spa" className="text-slate-800 dark:bg-[#12121E]">Spa (Japanese Head Spa)</option>
-                        <option value="Grooming" className="text-slate-800 dark:bg-[#12121E]">Executive Grooming</option>
-                      </select>
-                    </div>
-
-                    {/* Price quotient drop-selector */}
-                    <div className="flex flex-col gap-1.5 text-left">
-                      <label className="text-[9.5px] font-mono uppercase tracking-widest text-[#A07D1A] dark:text-amber-500 font-extrabold">
-                        Prestige Tier
-                      </label>
-                      <select 
-                        value={heroSearchPrice} 
-                        onChange={(e) => setHeroSearchPrice(e.target.value)}
-                        className="bg-white dark:bg-[#181829] border border-[#E1DBCE] dark:border-indigo-950/45 hover:border-[#A07D1A] dark:hover:border-amber-500/80 rounded-lg p-2 text-xs text-slate-800 dark:text-slate-200 focus:outline-none transition-all cursor-pointer"
-                      >
-                        <option value="All" className="text-slate-800 dark:bg-[#12121E]">All Budgets</option>
-                        <option value="₹₹" className="text-slate-800 dark:bg-[#12121E]">Signature (₹₹)</option>
-                        <option value="₹₹₹" className="text-slate-800 dark:bg-[#12121E]">Premium (₹₹₹)</option>
-                        <option value="₹₹₹₹" className="text-slate-800 dark:bg-[#12121E]">Ultra Luxury (₹₹₹₹)</option>
-                      </select>
-                    </div>
-
-                  </div>
-
-                  {/* Search Slot button triggers navigation */}
-                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pt-1.5">
-                    <span className="text-[10px] text-[#A07D1A] dark:text-amber-500/80 italic font-light text-left leading-relaxed max-w-xs">
-                      🔒 Zero platform surcharges. All bookings backed by Direct Parity price guarantee.
-                    </span>
-                    <button
-                      onClick={() => navigateTo('explore')}
-                      className="px-6 py-3.5 bg-[#A07D1A] hover:bg-[#805C06] dark:bg-[#D4AF37] dark:text-slate-900 dark:hover:bg-[#FFF] text-white font-extrabold rounded-xl text-xs uppercase tracking-wider hover:shadow-[0_4px_14px_rgba(160,125,26,0.3)] hover:scale-[1.02] active:scale-98 transition-all cursor-pointer flex items-center justify-center gap-2 font-mono"
+                  {/* Location drop-selector */}
+                  <div className="flex flex-col gap-1.5 text-left">
+                    <label className="text-[9.5px] font-mono uppercase tracking-widest text-[#A07D1A] dark:text-amber-500 font-extrabold">
+                      Location / Area
+                    </label>
+                    <select 
+                      value={heroSearchArea} 
+                      onChange={(e) => setHeroSearchArea(e.target.value)}
+                      className="bg-white dark:bg-[#1C1C2D] border border-[#E1DBCE] dark:border-indigo-950/80 hover:border-[#A07D1A] dark:hover:border-amber-400 rounded-lg p-2.5 text-xs text-slate-800 dark:text-slate-200 focus:outline-none transition-all cursor-pointer"
                     >
-                      Search Live Slots <ArrowRight className="w-4 h-4 text-white dark:text-slate-900 shrink-0" />
-                    </button>
+                      <option value="All" className="text-slate-800 dark:bg-[#12121E]">Bengaluru (All Areas)</option>
+                      <option value="Indiranagar" className="text-slate-800 dark:bg-[#12121E]">Indiranagar</option>
+                      <option value="Koramangala" className="text-slate-800 dark:bg-[#12121E]">Koramangala</option>
+                      <option value="Whitefield" className="text-slate-800 dark:bg-[#12121E]">Whitefield</option>
+                      <option value="Jayanagar" className="text-slate-800 dark:bg-[#12121E]">Jayanagar</option>
+                      <option value="HSR Layout" className="text-slate-800 dark:bg-[#12121E]">HSR Layout</option>
+                      <option value="Banaswadi" className="text-slate-800 dark:bg-[#12121E]">Banaswadi</option>
+                    </select>
                   </div>
+
+                  {/* Service/Specialty category drop-selector */}
+                  <div className="flex flex-col gap-1.5 text-left">
+                    <label className="text-[9.5px] font-mono uppercase tracking-widest text-[#A07D1A] dark:text-amber-500 font-extrabold">
+                      Specialty Care
+                    </label>
+                    <select 
+                      value={heroSearchService} 
+                      onChange={(e) => setHeroSearchService(e.target.value)}
+                      className="bg-white dark:bg-[#1C1C2D] border border-[#E1DBCE] dark:border-indigo-950/80 hover:border-[#A07D1A] dark:hover:border-amber-400 rounded-lg p-2.5 text-xs text-slate-800 dark:text-slate-200 focus:outline-none transition-all cursor-pointer"
+                    >
+                      <option value="All" className="text-slate-800 dark:bg-[#12121E]">All Specialties</option>
+                      <option value="Hair" className="text-slate-800 dark:bg-[#12121E]">Hair (Balayage/Botox)</option>
+                      <option value="Skin" className="text-slate-800 dark:bg-[#12121E]">Skin (Facial/Clinic)</option>
+                      <option value="Nails" className="text-slate-800 dark:bg-[#12121E]">Nails (Art/Ext)</option>
+                      <option value="Bridal" className="text-slate-800 dark:bg-[#12121E]">Traditional Bridal</option>
+                      <option value="Spa" className="text-slate-800 dark:bg-[#12121E]">Spa (Japanese Head Spa)</option>
+                      <option value="Grooming" className="text-slate-800 dark:bg-[#12121E]">Executive Grooming</option>
+                    </select>
+                  </div>
+
+                  {/* Price quotient drop-selector */}
+                  <div className="flex flex-col gap-1.5 text-left">
+                    <label className="text-[9.5px] font-mono uppercase tracking-widest text-[#A07D1A] dark:text-amber-500 font-extrabold">
+                      Prestige Tier
+                    </label>
+                    <select 
+                      value={heroSearchPrice} 
+                      onChange={(e) => setHeroSearchPrice(e.target.value)}
+                      className="bg-white dark:bg-[#1C1C2D] border border-[#E1DBCE] dark:border-indigo-950/80 hover:border-[#A07D1A] dark:hover:border-amber-400 rounded-lg p-2.5 text-xs text-slate-800 dark:text-slate-200 focus:outline-none transition-all cursor-pointer"
+                    >
+                      <option value="All" className="text-slate-800 dark:bg-[#12121E]">All Budgets</option>
+                      <option value="₹₹" className="text-slate-800 dark:bg-[#12121E]">Signature (₹₹)</option>
+                      <option value="₹₹₹" className="text-slate-800 dark:bg-[#12121E]">Premium (₹₹₹)</option>
+                      <option value="₹₹₹₹" className="text-slate-800 dark:bg-[#12121E]">Ultra Luxury (₹₹₹₹)</option>
+                    </select>
+                  </div>
+
                 </div>
 
-                {/* Brand trust credits */}
-                <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-[10.5px] font-mono text-slate-400 font-extrabold uppercase tracking-wider">
-                  <span>⭐⭐⭐⭐⭐ 1,200 Verified Audits</span>
-                  <span>•</span>
-                  <span>🛡️ 100% Secure Checkout</span>
-                  <span>•</span>
-                  <span>⚡ Instant API Cal Sync</span>
+                {/* Search Slot button triggers navigation */}
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pt-2 border-t border-slate-100 dark:border-slate-800/60">
+                  <span className="text-[10px] text-[#A07D1A] dark:text-amber-500/80 italic font-mono text-left leading-relaxed max-w-sm">
+                    🔒 Zero platform surcharges. All bookings backed by Direct Parity price guarantee.
+                  </span>
+                  <button
+                    onClick={() => navigateTo('explore')}
+                    className="px-6 py-3.5 bg-[#A07D1A] hover:bg-[#805C06] dark:bg-amber-400 dark:text-slate-900 dark:hover:bg-white text-white font-extrabold rounded-xl text-xs uppercase tracking-wider hover:shadow-[0_4px_20px_rgba(212,175,55,0.25)] hover:scale-[1.02] active:scale-98 transition-all cursor-pointer flex items-center justify-center gap-2 font-mono"
+                  >
+                    Search Live Slots <ArrowRight className="w-4 h-4 text-white dark:text-slate-900 shrink-0" />
+                  </button>
                 </div>
               </div>
 
-              {/* Right Hero side: Interactive canvas simulation + slide deck portal */}
-              <div className="lg:col-span-6 w-full relative">
-                {/* Abstract luxury glowing ring behind scene */}
-                <div className="absolute w-[60%] h-[60%] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-tr from-[rgba(160,125,26,0.05)] to-transparent blur-3xl -z-10 pointer-events-none"></div>
-                <HeroScene />
+              {/* Brand trust credits */}
+              <div className="flex flex-wrap justify-center items-center gap-x-6 gap-y-2 mt-6 text-[10.5px] font-mono text-slate-400 dark:text-slate-500 font-extrabold uppercase tracking-wider">
+                <span>⭐⭐⭐⭐⭐ 1,200 Verified Audits</span>
+                <span>•</span>
+                <span>🛡️ 100% Secure Checkout</span>
+                <span>•</span>
+                <span>⚡ Instant API Cal Sync</span>
               </div>
 
             </div>
@@ -379,7 +386,7 @@ export default function App() {
             <div className="flex items-end justify-between border-b border-[#E1DBCE] dark:border-indigo-950/50 pb-3">
               <div>
                 <span className="text-[10px] text-[#A07D1A] dark:text-amber-500 tracking-[0.25em] font-bold block uppercase">Hand-audited Curation</span>
-                <h3 className="font-serif italic text-2xl md:text-4xl text-[#1E1A17] dark:text-white font-semibold">Featured Lounges</h3>
+                <h3 className="font-serif italic text-2xl md:text-3xl text-[#1E1A17] dark:text-white font-semibold">Featured Lounges</h3>
               </div>
               <button
                 onClick={() => navigateTo('explore')}
@@ -390,7 +397,7 @@ export default function App() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {LUX_SALONS.filter((s) => s.isFeatured).slice(0, 6).map((salon) => (
+              {salons.filter((s) => s.isFeatured).slice(0, 6).map((salon) => (
                 <SalonCard
                   key={salon.id}
                   salon={salon}
@@ -403,6 +410,24 @@ export default function App() {
                 />
               ))}
             </div>
+          </section>
+
+          {/* [MAP] INTERACTIVE LUXURY BENGALURU MAP */}
+          <section id="interactive_lounge_cartography" className="relative py-16 px-6 max-w-7xl mx-auto z-10 text-left space-y-6">
+            <div className="border-b border-[#E1DBCE] dark:border-indigo-950/50 pb-3">
+              <span className="text-[10px] text-[#A07D1A] dark:text-amber-500 tracking-[0.25em] font-bold block uppercase">Cartography Lounge Grid</span>
+              <h3 className="font-serif italic text-2xl md:text-4xl text-[#1E1A17] dark:text-white font-semibold">Bengaluru Interactive Salon Coordinates</h3>
+            </div>
+            <InteractiveMap
+              salons={salons}
+              onSelectSalon={(id) => {
+                setSelectedSalonId(id);
+                setCurrentPage('salon-detail');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              onBookNow={(s) => handleOpenBooking(s)}
+              appDarkMode={appDarkMode}
+            />
           </section>
 
           {/* [OP] REAL WORLD MARKETPLACE OPERATIONS CONTROL CENTER (Solving authentic user search & routing pain points!) */}
@@ -631,6 +656,7 @@ export default function App() {
             window.scrollTo({ top: 0 });
           }}
           onBookNow={(s) => handleOpenBooking(s)}
+          salons={salons}
         />
       )}
 
@@ -662,7 +688,7 @@ export default function App() {
         isOpen={isQuizOpen}
         onClose={() => setIsQuizOpen(false)}
         onSelectSalonToBook={(id) => {
-          const matchedSalon = LUX_SALONS.find((s) => s.id === id);
+          const matchedSalon = salons.find((s) => s.id === id);
           if (matchedSalon) {
             handleOpenBooking(matchedSalon);
           }
@@ -687,6 +713,25 @@ export default function App() {
           setBookingsRefreshToggle((prev) => prev + 1);
         }}
         initialService={bookingService}
+      />
+
+      {/* 6. REAL-TIME AI CONCIERGE CHATBOT */}
+      <ConciergeChatBot 
+        appDarkMode={appDarkMode} 
+        onNavigateToExplore={(search) => navigateTo('explore', search || '')}
+      />
+
+      {/* 7. PARTNERS, SALON OWNERS & ADMIN MANAGEMENT PORTAL */}
+      <AdminPortal
+        isOpen={isAdminPortalOpen}
+        onClose={() => {
+          setIsAdminPortalOpen(false);
+          fetchSalonsAndBookings();
+        }}
+        salons={salons}
+        bookings={bookings}
+        onRefreshData={fetchSalonsAndBookings}
+        appDarkMode={appDarkMode}
       />
 
     </div>
