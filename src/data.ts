@@ -3,7 +3,7 @@ import { Salon } from './types';
 export const LUX_SALONS: Salon[] = [
   {
     id: '1',
-    name: 'Maison de l\u2019Or',
+    name: "Maison de l'Or",
     area: 'Indiranagar',
     rating: 4.9,
     reviewCount: 342,
@@ -24,7 +24,7 @@ export const LUX_SALONS: Salon[] = [
     specialties: ['French Balayage', 'Hair Botox', 'High-End Bridal Makeup'],
     isLuxury: true,
     isFeatured: true,
-    description: 'Nestled in the upscale heart of Indiranagar, Maison de l\u2019Or is Bangalore\u2019s premier salon sanctuary. Drawing inspiration from luxury Parisian boudoirs, we deliver absolute perfection using premium elixir treatments, custom color diagnostics, and master-crafted styles.',
+    description: "Nestled in the upscale heart of Indiranagar, Maison de l'Or is Bangalore's premier salon sanctuary. Drawing inspiration from luxury Parisian boudoirs, we deliver absolute perfection using premium elixir treatments, custom color diagnostics, and master-crafted styles.",
     reviewsCount: 342,
     reviews: [
       { id: 'r1', author: 'Ananya Sharma', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=150', rating: 5, text: 'The absolute pinnacle of luxury. The gold leaf manicures and Kerastase rituals are unmatched. Truly world-class services!', date: '2 days ago', area: 'Indiranagar' },
@@ -59,7 +59,7 @@ export const LUX_SALONS: Salon[] = [
     specialties: ['Luxury Spa Treatments', 'HydraFacials', 'Collagen Therapies'],
     isLuxury: true,
     isFeatured: true,
-    description: 'Aura Premium Wellness offers a transcendent escape from the city\u2019s concrete noise. Unwind in private state-of-the-art therapist rooms with customizable aromatherapy profiles, state-of-the-art oxygen-infused showers, and elite skincare solutions.',
+    description: "Aura Premium Wellness offers a transcendent escape from the city's concrete noise. Unwind in private state-of-the-art therapist rooms with customizable aromatherapy profiles, state-of-the-art oxygen-infused showers, and elite skincare solutions.",
     reviewsCount: 218,
     reviews: [
       { id: 'r3', author: 'Meera Hegde', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=150', rating: 5, text: 'The HydroFacial is incredibly revitalizing. Exceptional care and extremely polite staff. It feels like a 5-star resort.', date: '3 days ago', area: 'Koramangala' }
@@ -85,13 +85,13 @@ export const LUX_SALONS: Salon[] = [
       { name: 'Royal Charcoal Shave & Massage', price: 2200, duration: '50 mins', category: 'Grooming' },
       { name: 'Master Barber Haircut & Sculpt', price: 1800, duration: '45 mins', category: 'Grooming' },
       { name: 'Beard Detox Therapy with Beard Oil', price: 1200, duration: '30 mins', category: 'Grooming' },
-      { name: 'Men\u2019s Brightening Skin Ritual', price: 3500, duration: '60 mins', category: 'Skin' }
+      { name: "Men's Brightening Skin Ritual", price: 3500, duration: '60 mins', category: 'Skin' }
     ],
     openHours: '09:30 AM - 09:00 PM',
     specialties: ['Barber Journeymen Styles', 'Beard Micro-Sculpting', 'Executive Facials'],
     isLuxury: false,
     isFeatured: true,
-    description: 'An elite, modern gentleman\u2019s lounge focusing strictly on high-level grooming, razor sculpting, hair styling, and executive skincare. Enjoy aged fine single-malt aromas, luxury leather recliners, and precision care.',
+    description: "An elite, modern gentleman's lounge focusing strictly on high-level grooming, razor sculpting, hair styling, and executive skincare. Enjoy aged fine single-malt aromas, luxury leather recliners, and precision care.",
     reviewsCount: 184,
     reviews: [
       { id: 'r4', author: 'Karan Malhotra', avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&q=80&w=150', rating: 4.5, text: 'Awesome haircut and extremely clean shave. They pay attention to the smallest details. Best grooming club in BLR.', date: '5 days ago', area: 'HSR Layout' }
@@ -123,7 +123,7 @@ export const LUX_SALONS: Salon[] = [
     specialties: ['Advanced Dermal Therapy', 'Glow Hydrators', 'Organic Herb Peels'],
     isLuxury: true,
     isFeatured: false,
-    description: 'Velours Luxury Skin Clinic pairs clinical precision with pure organic pampering. Our licensed dermal specialists utilize laser diagnostics and advanced peptide formulations to unlock your skin\u2019s biological glow.',
+    description: "Velours Luxury Skin Clinic pairs clinical precision with pure organic pampering. Our licensed dermal specialists utilize laser diagnostics and advanced peptide formulations to unlock your skin's biological glow.",
     reviewsCount: 289,
     reviews: [
       { id: 'r5', author: 'Sonal Mittal', avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=150', rating: 5, text: 'Absolutely spectacular. The Gold Facial Prep made my face radiant for weeks. The skin analysis is extremely professional.', date: '1 week ago', area: 'Whitefield' }
@@ -144,7 +144,7 @@ export const LUX_SALONS: Salon[] = [
     ],
     services: [
       { name: 'Keratin Ultra Strengthening Treatment', price: 4200, duration: '120 mins', category: 'Hair' },
-      { name: 'Precision Women\u2019s Cut & Wave', price: 1800, duration: '60 mins', category: 'Hair' },
+      { name: "Precision Women's Cut & Wave", price: 1800, duration: '60 mins', category: 'Hair' },
       { name: 'Vibrant Root Retouch & Gloss', price: 2500, duration: '75 mins', category: 'Hair' }
     ],
     openHours: '10:00 AM - 08:30 PM',
@@ -154,7 +154,7 @@ export const LUX_SALONS: Salon[] = [
     description: 'Tress & Co. is a vibrant, modern high-street hair studio in Jayanagar. Specializing in advanced texture management, vibrant fashion pigments, and bouncy, high-density blowouts that turn heads.',
     reviewsCount: 156,
     reviews: [
-      { id: 'r6', author: 'Preeti G.', avatar: 'https://images.unsplash.com/photo-1554151228-14d9def656e4?auto=format&fit=crop&q=80&w=150', rating: 5, text: 'Best blowout I\u2019ve received in South Bangalore. Outstanding stylists who understand Indian hair density wonderfully.', date: '4 days ago', area: 'Jayanagar' }
+      { id: 'r6', author: 'Preeti G.', avatar: 'https://images.unsplash.com/photo-1554151228-14d9def656e4?auto=format&fit=crop&q=80&w=150', rating: 5, text: "Best blowout I've received in South Bangalore. Outstanding stylists who understand Indian hair density wonderfully.", date: '4 days ago', area: 'Jayanagar' }
     ],
     offers: [
       { id: 'o5', title: 'Student Special', description: '15% off for students with valid ID', discountPercent: 15, validUntil: '2026-12-31', code: 'STUDENT15', isActive: true }
@@ -183,7 +183,7 @@ export const LUX_SALONS: Salon[] = [
     specialties: ['Japanese Scalp Spa', 'Hair Botox', 'High-End Nail Art'],
     isLuxury: true,
     isFeatured: true,
-    description: 'Spanning across a spacious glass mansion in Whitefield, The Crown & Coat acts as the go-to aesthetic house for IT founders and elite executives. Famous for its authentic 11-step Japanese head spa treatment.',
+    description: "Spanning across a spacious glass mansion in Whitefield, The Crown & Coat acts as the go-to aesthetic house for IT founders and elite executives. Famous for its authentic 11-step Japanese head spa treatment.",
     reviewsCount: 198,
     reviews: [
       { id: 'r7', author: 'Aishwarya R.', avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&q=80&w=150', rating: 4.8, text: 'The Japanese Head Spa is worth every single rupee. Pure, celestial bliss! My scalp feels incredibly clean.', date: '3 weeks ago', area: 'Whitefield' }
@@ -212,7 +212,7 @@ export const LUX_SALONS: Salon[] = [
     specialties: ['Custom Acrylic Extensions', 'Matte Nail Coatings', 'Volume Lash Mapping'],
     isLuxury: false,
     isFeatured: false,
-    description: 'Bangalore\u2019s specialized hub for beautiful nail designs and premium eyelash lifts. Over 200 high-end colors and decals imported from Japan and Korea, applied in an ultra-chic pink and gray interior.',
+    description: "Bangalore's specialized hub for beautiful nail designs and premium eyelash lifts. Over 200 high-end colors and decals imported from Japan and Korea, applied in an ultra-chic pink and gray interior.",
     reviewsCount: 124,
     reviews: [
       { id: 'r8', author: 'Divya Gowda', avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&q=80&w=150', rating: 4, text: 'Love my new extensions! The nail artist took her time and executed the mood board perfectly.', date: '1 day ago', area: 'HSR Layout' }
@@ -241,7 +241,7 @@ export const LUX_SALONS: Salon[] = [
     specialties: ['Heirloom South Indian Bridal Styles', 'Traditional Saree Artistry', 'HD Airbrush Makeup'],
     isLuxury: true,
     isFeatured: true,
-    description: 'Serving three generations of premium South Bangalore families, Royal Heritage Bridal Lounge is the definitive word in heirloom makeup, saree draping, and luxury glow-ups.',
+    description: "Serving three generations of premium South Bangalore families, Royal Heritage Bridal Lounge is the definitive word in heirloom makeup, saree draping, and luxury glow-ups.",
     reviewsCount: 147,
     reviews: [
       { id: 'r9', author: 'Shruthi Nair', avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&q=80&w=150', rating: 5, text: 'They made me look and feel like absolute royalty on my wedding day. Precision saree wrapping and makeup that lasted 16 hours.', date: '5 days ago', area: 'Jayanagar' }
@@ -322,7 +322,7 @@ export const LUX_SALONS: Salon[] = [
     services: [
       { name: 'Royal Sandalwood Shave & Scrub', price: 2500, duration: '60 mins', category: 'Grooming' },
       { name: 'Signature Hair Sculpt & Steam Hot Towel', price: 1900, duration: '50 mins', category: 'Grooming' },
-      { name: 'Men\u2019s Brightening Gold Mud Pack', price: 2800, duration: '40 mins', category: 'Skin' }
+      { name: "Men's Brightening Gold Mud Pack", price: 2800, duration: '40 mins', category: 'Skin' }
     ],
     openHours: '09:00 AM - 09:00 PM',
     specialties: ['Sandalwood Beard Spa', 'Precision Cuts', 'Hot Towel Therapies'],
@@ -363,5 +363,204 @@ export const LUX_SALONS: Salon[] = [
     ],
     phone: '+91 80 6345 6789',
     address: 'Banaswadi Ring Road, Bangalore'
+  },
+  // === REAL BANGALORE SALONS ===
+  {
+    id: '13',
+    name: 'Bounce Salon & Spa',
+    area: 'Indiranagar',
+    rating: 4.3,
+    reviewCount: 412,
+    priceRange: '$$',
+    images: [
+      'https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&q=80&w=800',
+      'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&q=80&w=800'
+    ],
+    services: [
+      { name: 'Haircut & Styling', price: 800, duration: '45 mins', category: 'Hair' },
+      { name: 'Keratin Treatment', price: 3500, duration: '120 mins', category: 'Hair' },
+      { name: 'Deep Conditioning Spa', price: 1200, duration: '60 mins', category: 'Hair' },
+      { name: 'Threading & Waxing', price: 400, duration: '30 mins', category: 'Skin' }
+    ],
+    openHours: '10:00 AM - 09:00 PM',
+    specialties: ['Affordable Styling', 'Quick Blowouts', 'Family Friendly'],
+    isLuxury: false,
+    isFeatured: false,
+    description: "Bounce Salon is one of Bangalore's most popular chain salons with multiple outlets across the city. Known for consistent quality, trained stylists, and affordable pricing that makes premium grooming accessible to everyone.",
+    reviewsCount: 412,
+    reviews: [
+      { id: 'r14', author: 'Sneha Rao', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=150', rating: 4, text: 'Great value for money. The stylists are well-trained and the haircut was exactly what I wanted. Perfect for regular maintenance.', date: '1 week ago', area: 'Indiranagar' }
+    ],
+    offers: [
+      { id: 'o7', title: 'New Customer Deal', description: '30% off on your first visit', discountPercent: 30, validUntil: '2026-12-31', code: 'BOUNCE30', isActive: true }
+    ],
+    phone: '+91 80 2520 1111',
+    email: 'indiranagar@bouncesalon.com',
+    address: 'CMH Road, Indiranagar, Bangalore'
+  },
+  {
+    id: '14',
+    name: 'Naturals Salon',
+    area: 'Koramangala',
+    rating: 4.2,
+    reviewCount: 567,
+    priceRange: '$$',
+    images: [
+      'https://images.unsplash.com/photo-1562322140-8baeececf3df?auto=format&fit=crop&q=80&w=800',
+      'https://images.unsplash.com/photo-1595425970377-c9703cf48b6d?auto=format&fit=crop&q=80&w=800'
+    ],
+    services: [
+      { name: 'Haircut & Hair Wash', price: 600, duration: '45 mins', category: 'Hair' },
+      { name: 'Facial & Cleanup', price: 900, duration: '60 mins', category: 'Skin' },
+      { name: 'Manicure & Pedicure', price: 700, duration: '60 mins', category: 'Nails' },
+      { name: 'Bridal Makeup Package', price: 15000, duration: '240 mins', category: 'Bridal' }
+    ],
+    openHours: '09:30 AM - 09:00 PM',
+    specialties: ['Bridal Makeup', 'Family Salon', 'Affordable Packages'],
+    isLuxury: false,
+    isFeatured: false,
+    description: "Naturals is India's largest salon chain with over 700 outlets. The Koramangala branch offers professional hair, skin, and bridal services at pocket-friendly prices with experienced therapists and stylists.",
+    reviewsCount: 567,
+    reviews: [
+      { id: 'r15', author: 'Priya Menon', avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=150', rating: 4, text: 'Been coming here for years. The bridal makeup team is fantastic and very professional. Great for regular family grooming needs.', date: '3 days ago', area: 'Koramangala' }
+    ],
+    offers: [
+      { id: 'o8', title: 'Family Package', description: 'Book 3 services and get 20% off total bill', discountPercent: 20, validUntil: '2026-12-31', code: 'FAMILY20', isActive: true }
+    ],
+    phone: '+91 80 2552 2222',
+    email: 'koramangala@naturals.in',
+    address: '7th Block, Koramangala, Bangalore'
+  },
+  {
+    id: '15',
+    name: 'Jean-Claude Biguine (JCB)',
+    area: 'Whitefield',
+    rating: 4.5,
+    reviewCount: 234,
+    priceRange: '$$$',
+    images: [
+      'https://images.unsplash.com/photo-1633681926035-ec1ac984418a?auto=format&fit=crop&q=80&w=800',
+      'https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?auto=format&fit=crop&q=80&w=800'
+    ],
+    services: [
+      { name: 'Precision Haircut', price: 1500, duration: '60 mins', category: 'Hair' },
+      { name: 'Global Hair Color', price: 4500, duration: '120 mins', category: 'Hair' },
+      { name: 'Kerastase Hair Spa', price: 2800, duration: '75 mins', category: 'Hair' },
+      { name: "L'Oreal Professional Facial", price: 2200, duration: '60 mins', category: 'Skin' }
+    ],
+    openHours: '10:00 AM - 08:30 PM',
+    specialties: ['French Hair Techniques', 'L\'Oreal Products', 'Global Coloring'],
+    isLuxury: true,
+    isFeatured: false,
+    description: "Jean-Claude Biguine brings authentic French hairstyling to Bangalore. Using premium L'Oreal and Kerastase products, their trained stylists deliver international-standard cuts, colors, and treatments in a sophisticated European ambiance.",
+    reviewsCount: 234,
+    reviews: [
+      { id: 'r16', author: 'Anjali Thomas', avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&q=80&w=150', rating: 5, text: 'The color work here is exceptional. They really understand global trends and the products they use are top-notch. Worth every penny.', date: '5 days ago', area: 'Whitefield' }
+    ],
+    offers: [
+      { id: 'o9', title: 'Color Day Special', description: '15% off on all hair coloring services every Wednesday', discountPercent: 15, validUntil: '2026-12-31', code: 'COLOR15', isActive: true }
+    ],
+    phone: '+91 80 2843 3333',
+    email: 'whitefield@jcbiguine.com',
+    address: 'Phoenix Marketcity, Whitefield, Bangalore'
+  },
+  {
+    id: '16',
+    name: 'Lakme Salon',
+    area: 'Jayanagar',
+    rating: 4.1,
+    reviewCount: 389,
+    priceRange: '$$',
+    images: [
+      'https://images.unsplash.com/photo-1607613009820-a29f7bb81c04?auto=format&fit=crop&q=80&w=800',
+      'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?auto=format&fit=crop&q=80&w=800'
+    ],
+    services: [
+      { name: 'Haircut & Styling', price: 700, duration: '45 mins', category: 'Hair' },
+      { name: 'Lakme Facial', price: 1200, duration: '60 mins', category: 'Skin' },
+      { name: 'Bridal Makeup', price: 12000, duration: '180 mins', category: 'Bridal' },
+      { name: 'Nail Art & Extension', price: 1500, duration: '60 mins', category: 'Nails' }
+    ],
+    openHours: '09:00 AM - 09:00 PM',
+    specialties: ['Bridal Makeup', 'Lakme Products', 'Quick Services'],
+    isLuxury: false,
+    isFeatured: false,
+    description: "Lakme Salon is India's most trusted beauty brand with over 400 salons nationwide. The Jayanagar outlet offers professional hair, skin, and bridal services using Lakme's own product line at competitive prices.",
+    reviewsCount: 389,
+    reviews: [
+      { id: 'r17', author: 'Megha Iyer', avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&q=80&w=150', rating: 4, text: 'Reliable and consistent. The Lakme facial is my go-to every month. Staff is courteous and the salon is always clean and hygienic.', date: '2 weeks ago', area: 'Jayanagar' }
+    ],
+    offers: [
+      { id: 'o10', title: 'Loyalty Reward', description: 'Every 5th visit gets 25% off', discountPercent: 25, validUntil: '2026-12-31', code: 'LOYAL25', isActive: true }
+    ],
+    phone: '+91 80 2663 4444',
+    email: 'jayanagar@lakmesalon.in',
+    address: '4th Block, Jayanagar, Bangalore'
+  },
+  {
+    id: '17',
+    name: 'Toni & Guy',
+    area: 'HSR Layout',
+    rating: 4.6,
+    reviewCount: 198,
+    priceRange: '$$$',
+    images: [
+      'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&q=80&w=800',
+      'https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&q=80&w=800'
+    ],
+    services: [
+      { name: 'Creative Cut & Style', price: 1800, duration: '60 mins', category: 'Hair' },
+      { name: 'Balayage & Highlights', price: 6500, duration: '180 mins', category: 'Hair' },
+      { name: 'Toni & Guy Hair Spa', price: 2500, duration: '75 mins', category: 'Hair' },
+      { name: 'Makeup & Styling', price: 3500, duration: '90 mins', category: 'Bridal' }
+    ],
+    openHours: '10:00 AM - 09:00 PM',
+    specialties: ['British Hairdressing', 'Creative Coloring', 'Runway Styling'],
+    isLuxury: true,
+    isFeatured: true,
+    description: 'Toni & Guy is a legendary British hairdressing brand with a flagship presence in Bangalore. Known for avant-garde cuts, creative color techniques, and runway-inspired styling using premium Label.m products.',
+    reviewsCount: 198,
+    reviews: [
+      { id: 'r18', author: 'Riya Kapoor', avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&q=80&w=150', rating: 5, text: 'The balayage here is absolutely stunning. They really understand hair texture and color theory. The British styling approach is refreshing!', date: '4 days ago', area: 'HSR Layout' }
+    ],
+    offers: [
+      { id: 'o11', title: 'Student Discount', description: '20% off for students with valid ID card', discountPercent: 20, validUntil: '2026-12-31', code: 'STUDENT20', isActive: true }
+    ],
+    phone: '+91 80 4950 5555',
+    email: 'hsr@toniguy.co.in',
+    address: '27th Main, HSR Layout, Bangalore'
+  },
+  {
+    id: '18',
+    name: 'YLG Salon & Spa',
+    area: 'Banaswadi',
+    rating: 4.4,
+    reviewCount: 276,
+    priceRange: '$$',
+    images: [
+      'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&q=80&w=800',
+      'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&q=80&w=800'
+    ],
+    services: [
+      { name: 'Haircut & Conditioning', price: 650, duration: '45 mins', category: 'Hair' },
+      { name: 'Aroma Therapy Massage', price: 1800, duration: '60 mins', category: 'Spa' },
+      { name: 'Detan Facial', price: 800, duration: '45 mins', category: 'Skin' },
+      { name: 'Full Body Waxing', price: 1500, duration: '90 mins', category: 'Skin' }
+    ],
+    openHours: '09:30 AM - 08:30 PM',
+    specialties: ['Aroma Therapy', 'Budget Luxury', 'Full Body Care'],
+    isLuxury: false,
+    isFeatured: false,
+    description: 'YLG (You Look Great) Salon & Spa is a rapidly growing South Indian chain known for blending Ayurvedic traditions with modern techniques. Their Banaswadi outlet offers affordable luxury with trained therapists and hygienic practices.',
+    reviewsCount: 276,
+    reviews: [
+      { id: 'r19', author: 'Divya Nair', avatar: 'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&q=80&w=150', rating: 4, text: 'The aroma therapy massage is heavenly. Very professional staff and the prices are quite reasonable for the quality they provide.', date: '1 week ago', area: 'Banaswadi' }
+    ],
+    offers: [
+      { id: 'o12', title: 'Weekend Spa Bundle', description: 'Hair + Spa + Facial combo at 35% off', discountPercent: 35, validUntil: '2026-08-31', code: 'WEEKEND35', isActive: true }
+    ],
+    phone: '+91 80 4951 6666',
+    email: 'banaswadi@ylg.in',
+    address: 'Banaswadi Main Road, Bangalore'
   }
 ];

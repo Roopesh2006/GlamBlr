@@ -175,6 +175,252 @@
       "reviews": [],
       "phone": "+91 80 5123 4567",
       "address": "Banaswadi Main Road, Bangalore"
+    },
+    {
+      "id": "13",
+      "name": "Bounce Salon & Spa",
+      "area": "Indiranagar",
+      "rating": 4.3,
+      "reviewCount": 412,
+      "priceRange": "$$",
+      "images": [
+        "https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&q=80&w=800",
+        "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&q=80&w=800"
+      ],
+      "services": [
+        { "name": "Haircut & Styling", "price": 800, "duration": "45 mins", "category": "Hair" },
+        { "name": "Keratin Treatment", "price": 3500, "duration": "120 mins", "category": "Hair" },
+        { "name": "Deep Conditioning Spa", "price": 1200, "duration": "60 mins", "category": "Hair" },
+        { "name": "Threading & Waxing", "price": 400, "duration": "30 mins", "category": "Skin" }
+      ],
+      "openHours": "10:00 AM - 09:00 PM",
+      "specialties": ["Affordable Styling", "Quick Blowouts", "Family Friendly"],
+      "isLuxury": false,
+      "isFeatured": false,
+      "description": "Bounce Salon is one of Bangalore's most popular chain salons with multiple outlets across the city. Known for consistent quality, trained stylists, and affordable pricing that makes premium grooming accessible to everyone.",
+      "reviewsCount": 412,
+      "reviews": [
+        {
+          "id": "r14",
+          "author": "Sneha Rao",
+          "avatar": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=150",
+          "rating": 4,
+          "text": "Great value for money. The stylists are well-trained and the haircut was exactly what I wanted. Perfect for regular maintenance.",
+          "date": "1 week ago",
+          "area": "Indiranagar"
+        }
+      ],
+      "offers": [
+        { "id": "o7", "title": "New Customer Deal", "description": "30% off on your first visit", "discountPercent": 30, "validUntil": "2026-12-31", "code": "BOUNCE30", "isActive": true }
+      ],
+      "phone": "+91 80 2520 1111",
+      "email": "indiranagar@bouncesalon.com",
+      "address": "CMH Road, Indiranagar, Bangalore"
+    },
+    {
+      "id": "14",
+      "name": "Naturals Salon",
+      "area": "Koramangala",
+      "rating": 4.2,
+      "reviewCount": 567,
+      "priceRange": "$$",
+      "images": [
+        "https://images.unsplash.com/photo-1562322140-8baeececf3df?auto=format&fit=crop&q=80&w=800",
+        "https://images.unsplash.com/photo-1595425970377-c9703cf48b6d?auto=format&fit=crop&q=80&w=800"
+      ],
+      "services": [
+        { "name": "Haircut & Hair Wash", "price": 600, "duration": "45 mins", "category": "Hair" },
+        { "name": "Facial & Cleanup", "price": 900, "duration": "60 mins", "category": "Skin" },
+        { "name": "Manicure & Pedicure", "price": 700, "duration": "60 mins", "category": "Nails" },
+        { "name": "Bridal Makeup Package", "price": 15000, "duration": "240 mins", "category": "Bridal" }
+      ],
+      "openHours": "09:30 AM - 09:00 PM",
+      "specialties": ["Bridal Makeup", "Family Salon", "Affordable Packages"],
+      "isLuxury": false,
+      "isFeatured": false,
+      "description": "Naturals is India's largest salon chain with over 700 outlets. The Koramangala branch offers professional hair, skin, and bridal services at pocket-friendly prices with experienced therapists and stylists.",
+      "reviewsCount": 567,
+      "reviews": [
+        {
+          "id": "r15",
+          "author": "Priya Menon",
+          "avatar": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=150",
+          "rating": 4,
+          "text": "Been coming here for years. The bridal makeup team is fantastic and very professional. Great for regular family grooming needs.",
+          "date": "3 days ago",
+          "area": "Koramangala"
+        }
+      ],
+      "offers": [
+        { "id": "o8", "title": "Family Package", "description": "Book 3 services and get 20% off total bill", "discountPercent": 20, "validUntil": "2026-12-31", "code": "FAMILY20", "isActive": true }
+      ],
+      "phone": "+91 80 2552 2222",
+      "email": "koramangala@naturals.in",
+      "address": "7th Block, Koramangala, Bangalore"
+    },
+    {
+      "id": "15",
+      "name": "Jean-Claude Biguine (JCB)",
+      "area": "Whitefield",
+      "rating": 4.5,
+      "reviewCount": 234,
+      "priceRange": "$$$",
+      "images": [
+        "https://images.unsplash.com/photo-1633681926035-ec1ac984418a?auto=format&fit=crop&q=80&w=800",
+        "https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?auto=format&fit=crop&q=80&w=800"
+      ],
+      "services": [
+        { "name": "Precision Haircut", "price": 1500, "duration": "60 mins", "category": "Hair" },
+        { "name": "Global Hair Color", "price": 4500, "duration": "120 mins", "category": "Hair" },
+        { "name": "Kerastase Hair Spa", "price": 2800, "duration": "75 mins", "category": "Hair" },
+        { "name": "L'Oreal Professional Facial", "price": 2200, "duration": "60 mins", "category": "Skin" }
+      ],
+      "openHours": "10:00 AM - 08:30 PM",
+      "specialties": ["French Hair Techniques", "L'Oreal Products", "Global Coloring"],
+      "isLuxury": true,
+      "isFeatured": false,
+      "description": "Jean-Claude Biguine brings authentic French hairstyling to Bangalore. Using premium L'Oreal and Kerastase products, their trained stylists deliver international-standard cuts, colors, and treatments in a sophisticated European ambiance.",
+      "reviewsCount": 234,
+      "reviews": [
+        {
+          "id": "r16",
+          "author": "Anjali Thomas",
+          "avatar": "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&q=80&w=150",
+          "rating": 5,
+          "text": "The color work here is exceptional. They really understand global trends and the products they use are top-notch. Worth every penny.",
+          "date": "5 days ago",
+          "area": "Whitefield"
+        }
+      ],
+      "offers": [
+        { "id": "o9", "title": "Color Day Special", "description": "15% off on all hair coloring services every Wednesday", "discountPercent": 15, "validUntil": "2026-12-31", "code": "COLOR15", "isActive": true }
+      ],
+      "phone": "+91 80 2843 3333",
+      "email": "whitefield@jcbiguine.com",
+      "address": "Phoenix Marketcity, Whitefield, Bangalore"
+    },
+    {
+      "id": "16",
+      "name": "Lakme Salon",
+      "area": "Jayanagar",
+      "rating": 4.1,
+      "reviewCount": 389,
+      "priceRange": "$$",
+      "images": [
+        "https://images.unsplash.com/photo-1607613009820-a29f7bb81c04?auto=format&fit=crop&q=80&w=800",
+        "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?auto=format&fit=crop&q=80&w=800"
+      ],
+      "services": [
+        { "name": "Haircut & Styling", "price": 700, "duration": "45 mins", "category": "Hair" },
+        { "name": "Lakme Facial", "price": 1200, "duration": "60 mins", "category": "Skin" },
+        { "name": "Bridal Makeup", "price": 12000, "duration": "180 mins", "category": "Bridal" },
+        { "name": "Nail Art & Extension", "price": 1500, "duration": "60 mins", "category": "Nails" }
+      ],
+      "openHours": "09:00 AM - 09:00 PM",
+      "specialties": ["Bridal Makeup", "Lakme Products", "Quick Services"],
+      "isLuxury": false,
+      "isFeatured": false,
+      "description": "Lakme Salon is India's most trusted beauty brand with over 400 salons nationwide. The Jayanagar outlet offers professional hair, skin, and bridal services using Lakme's own product line at competitive prices.",
+      "reviewsCount": 389,
+      "reviews": [
+        {
+          "id": "r17",
+          "author": "Megha Iyer",
+          "avatar": "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&q=80&w=150",
+          "rating": 4,
+          "text": "Reliable and consistent. The Lakme facial is my go-to every month. Staff is courteous and the salon is always clean and hygienic.",
+          "date": "2 weeks ago",
+          "area": "Jayanagar"
+        }
+      ],
+      "offers": [
+        { "id": "o10", "title": "Loyalty Reward", "description": "Every 5th visit gets 25% off", "discountPercent": 25, "validUntil": "2026-12-31", "code": "LOYAL25", "isActive": true }
+      ],
+      "phone": "+91 80 2663 4444",
+      "email": "jayanagar@lakmesalon.in",
+      "address": "4th Block, Jayanagar, Bangalore"
+    },
+    {
+      "id": "17",
+      "name": "Toni & Guy",
+      "area": "HSR Layout",
+      "rating": 4.6,
+      "reviewCount": 198,
+      "priceRange": "$$$",
+      "images": [
+        "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&q=80&w=800",
+        "https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&q=80&w=800"
+      ],
+      "services": [
+        { "name": "Creative Cut & Style", "price": 1800, "duration": "60 mins", "category": "Hair" },
+        { "name": "Balayage & Highlights", "price": 6500, "duration": "180 mins", "category": "Hair" },
+        { "name": "Toni & Guy Hair Spa", "price": 2500, "duration": "75 mins", "category": "Hair" },
+        { "name": "Makeup & Styling", "price": 3500, "duration": "90 mins", "category": "Bridal" }
+      ],
+      "openHours": "10:00 AM - 09:00 PM",
+      "specialties": ["British Hairdressing", "Creative Coloring", "Runway Styling"],
+      "isLuxury": true,
+      "isFeatured": true,
+      "description": "Toni & Guy is a legendary British hairdressing brand with a flagship presence in Bangalore. Known for avant-garde cuts, creative color techniques, and runway-inspired styling using premium Label.m products.",
+      "reviewsCount": 198,
+      "reviews": [
+        {
+          "id": "r18",
+          "author": "Riya Kapoor",
+          "avatar": "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&q=80&w=150",
+          "rating": 5,
+          "text": "The balayage here is absolutely stunning. They really understand hair texture and color theory. The British styling approach is refreshing!",
+          "date": "4 days ago",
+          "area": "HSR Layout"
+        }
+      ],
+      "offers": [
+        { "id": "o11", "title": "Student Discount", "description": "20% off for students with valid ID card", "discountPercent": 20, "validUntil": "2026-12-31", "code": "STUDENT20", "isActive": true }
+      ],
+      "phone": "+91 80 4950 5555",
+      "email": "hsr@toniguy.co.in",
+      "address": "27th Main, HSR Layout, Bangalore"
+    },
+    {
+      "id": "18",
+      "name": "YLG Salon & Spa",
+      "area": "Banaswadi",
+      "rating": 4.4,
+      "reviewCount": 276,
+      "priceRange": "$$",
+      "images": [
+        "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&q=80&w=800",
+        "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&q=80&w=800"
+      ],
+      "services": [
+        { "name": "Haircut & Conditioning", "price": 650, "duration": "45 mins", "category": "Hair" },
+        { "name": "Aroma Therapy Massage", "price": 1800, "duration": "60 mins", "category": "Spa" },
+        { "name": "Detan Facial", "price": 800, "duration": "45 mins", "category": "Skin" },
+        { "name": "Full Body Waxing", "price": 1500, "duration": "90 mins", "category": "Skin" }
+      ],
+      "openHours": "09:30 AM - 08:30 PM",
+      "specialties": ["Aroma Therapy", "Budget Luxury", "Full Body Care"],
+      "isLuxury": false,
+      "isFeatured": false,
+      "description": "YLG (You Look Great) Salon & Spa is a rapidly growing South Indian chain known for blending Ayurvedic traditions with modern techniques. Their Banaswadi outlet offers affordable luxury with trained therapists and hygienic practices.",
+      "reviewsCount": 276,
+      "reviews": [
+        {
+          "id": "r19",
+          "author": "Divya Nair",
+          "avatar": "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&q=80&w=150",
+          "rating": 4,
+          "text": "The aroma therapy massage is heavenly. Very professional staff and the prices are quite reasonable for the quality they provide.",
+          "date": "1 week ago",
+          "area": "Banaswadi"
+        }
+      ],
+      "offers": [
+        { "id": "o12", "title": "Weekend Spa Bundle", "description": "Hair + Spa + Facial combo at 35% off", "discountPercent": 35, "validUntil": "2026-08-31", "code": "WEEKEND35", "isActive": true }
+      ],
+      "phone": "+91 80 4951 6666",
+      "email": "banaswadi@ylg.in",
+      "address": "Banaswadi Main Road, Bangalore"
     }
   ],
   "bookings": []

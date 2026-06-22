@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Calendar, Clock, User, Phone, CircleCheck as CheckCircle, ShieldCheck, Ticket, CircleSlash, Sparkles } from 'lucide-react';
+import { X, Calendar, Clock, User, Mail, CircleCheck as CheckCircle, ShieldCheck, Ticket, CircleSlash, Sparkles } from 'lucide-react';
 import { Salon, Service, Booking } from '../types';
 
 interface BookingModalProps {
@@ -26,7 +26,7 @@ export default function BookingModal({
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [selectedTime, setSelectedTime] = useState<string>('');
   const [customerName, setCustomerName] = useState<string>('');
-  const [customerPhone, setCustomerPhone] = useState<string>('');
+  const [customerEmail, setCustomerEmail] = useState<string>('');
   const [bookingId, setBookingId] = useState<string>('');
   const [formError, setFormError] = useState<string>('');
 
@@ -40,7 +40,7 @@ export default function BookingModal({
       setSelectedDate(tomorrow.toISOString().split('T')[0]);
       setSelectedTime('11:00 AM');
       setCustomerName('');
-      setCustomerPhone('');
+      setCustomerEmail('');
       setFormError('');
     }
   }, [isOpen, initialService, salon]);
@@ -77,8 +77,8 @@ export default function BookingModal({
       setFormError('Please enter your full name.');
       return;
     }
-    if (!customerPhone.trim() || customerPhone.length < 10) {
-      setFormError('Please enter a valid 10-digit phone number.');
+    if (!customerEmail.trim() || !customerEmail.includes('@')) {
+      setFormError('Please enter a valid email address.');
       return;
     }
 
@@ -93,7 +93,7 @@ export default function BookingModal({
       date: selectedDate,
       time: selectedTime,
       customerName,
-      customerPhone,
+      customerEmail,
       status: 'confirmed'
     };
 
@@ -127,7 +127,8 @@ export default function BookingModal({
                 booking_date: selectedDate,
                 booking_time: selectedTime,
                 booking_id: newBookingId,
-                customer_phone: customerPhone
+                customer_email: customerEmail,
+                reply_to: customerEmail
               }
             })
           });
@@ -321,16 +322,15 @@ export default function BookingModal({
               </div>
 
               <div>
-                <label className="block text-xs text-gray-400 mb-1 font-semibold uppercase tracking-wider">Contact Phone Number</label>
+                <label className="block text-xs text-gray-400 mb-1 font-semibold uppercase tracking-wider">Email Address</label>
                 <div className="relative">
-                  <Phone className="absolute left-3.5 top-3 w-4 h-4 text-gray-500" />
+                  <Mail className="absolute left-3.5 top-3 w-4 h-4 text-gray-500" />
                   <input
-                    type="tel"
+                    type="email"
                     required
-                    maxLength={10}
-                    placeholder="10-digit mobile number, e.g. 9845012345"
-                    value={customerPhone}
-                    onChange={(e) => setCustomerPhone(e.target.value.replace(/\D/g, ''))}
+                    placeholder="your.email@gmail.com"
+                    value={customerEmail}
+                    onChange={(e) => setCustomerEmail(e.target.value)}
                     className="w-full bg-white/5 focus:bg-white/10 border border-white/10 focus:border-[#D4AF37] rounded-xl py-2.5 pl-10 pr-4 text-sm text-white focus:outline-none transition-all"
                   />
                 </div>

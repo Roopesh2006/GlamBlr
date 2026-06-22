@@ -410,9 +410,9 @@ app.get("/api/bookings", async (req, res) => {
 
 // Client makes a booking
 app.post("/api/bookings", async (req, res) => {
-  const { signupMode, id, salonId, salonName, service, date, time, customerName, customerPhone } = req.body;
+  const { signupMode, id, salonId, salonName, service, date, time, customerName, customerEmail } = req.body;
 
-  if (!salonId || !service || !date || !time || !customerName || !customerPhone) {
+  if (!salonId || !service || !date || !time || !customerName || !customerEmail) {
     return res.status(400).json({ error: "Booking missing required parameters" });
   }
 
@@ -425,7 +425,7 @@ app.post("/api/bookings", async (req, res) => {
     date,
     time,
     customerName,
-    customerPhone,
+    customerEmail,
     status: "confirmed"
   };
 

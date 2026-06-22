@@ -55,7 +55,7 @@ export interface Booking {
   date: string;
   time: string;
   customerName: string;
-  customerPhone: string;
+  customerEmail: string;
   status: 'confirmed' | 'pending' | 'completed' | 'cancelled';
 }
 

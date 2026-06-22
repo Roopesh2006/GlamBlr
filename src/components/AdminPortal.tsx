@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { X, Shield, Users, Store, Send, CheckCircle2, Trash2, CalendarCheck, HelpCircle, RefreshCw, KeyRound, ArrowRight, Sparkles, Navigation, Plus, DollarSign, Clock, Image, Tag, Edit3, Save, Phone, Mail, MapPinIcon } from 'lucide-react';
+import { X, Shield, Users, Store, Send, CircleCheck as CheckCircle2, Trash2, CalendarCheck, Circle as HelpCircle, RefreshCw, KeyRound, ArrowRight, Sparkles, Navigation, Plus, DollarSign, Clock, Image, Tag, CreditCard as Edit3, Save, Phone, Mail, MapPin as MapPinIcon } from 'lucide-react';
 import { Salon, Booking, Service, Offer } from '../types';
 
 interface AdminPortalProps {
@@ -633,7 +633,7 @@ export default function AdminPortal({
                                     {b.service.category} - {b.service.duration}
                                   </span>
                                 </td>
-                                <td className="p-3 font-mono text-[10px]">{b.customerPhone}</td>
+                                <td className="p-3 font-mono text-[10px]">{b.customerEmail}</td>
                                 <td className="p-3 font-mono font-bold text-slate-900 dark:text-white">Rs.{b.service.price}</td>
                                 <td className="p-3">
                                   {b.status === 'confirmed' ? (
