@@ -2,18 +2,18 @@
   "salons": [
     {
       "id": "1",
-      "name": "Maison de l’Or",
+      "name": "Maison de l'Or",
       "area": "Indiranagar",
       "rating": 4.9,
       "reviewCount": 342,
-      "priceRange": "₹₹₹₹",
+      "priceRange": "$$$$",
       "images": [
         "https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&q=80&w=800",
         "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&q=80&w=800"
       ],
       "services": [
         { "name": "Balayage & Couture Toning", "price": 9500, "duration": "180 mins", "category": "Hair" },
-        { "name": "Kérastase Chronologiste Caviar Rite", "price": 6500, "duration": 90, "description": "Luxe hair repair treatment", "category": "Hair Care", "rating": 5 },
+        { "name": "Kerastase Chronologiste Caviar Rite", "price": 6500, "duration": "90 mins", "category": "Hair" },
         { "name": "Bridal Glow-Up Signature Makeup", "price": 25000, "duration": "240 mins", "category": "Bridal" },
         { "name": "Caviar Radiance Luxury Facial", "price": 7500, "duration": "75 mins", "category": "Skin" },
         { "name": "Nail extensions with 24K Gold Leaf", "price": 4500, "duration": "90 mins", "category": "Nails" }
@@ -22,7 +22,7 @@
       "specialties": ["French Balayage", "Hair Botox", "High-End Bridal Makeup"],
       "isLuxury": true,
       "isFeatured": true,
-      "description": "Nestled in the upscale heart of Indiranagar, Maison de l’Or is Bangalore’s premier salon sanctuary. Drawing inspiration from classic Parisian boutique aesthetics, we provide a sensory escape with highly personalized attention.",
+      "description": "Nestled in the upscale heart of Indiranagar, Maison de l'Or is Bangalore's premier salon sanctuary. Drawing inspiration from classic Parisian boutique aesthetics, we provide a sensory escape with highly personalized attention.",
       "reviewsCount": 342,
       "reviews": [
         {
@@ -30,11 +30,18 @@
           "author": "Ananya Sharma",
           "avatar": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=150",
           "rating": 5,
-          "text": "The absolute pinnacle of luxury. The gold leaf manicures and Kérastase rituals are unmatched. Truly world-class services!",
+          "text": "The absolute pinnacle of luxury. The gold leaf manicures and Kerastase rituals are unmatched. Truly world-class services!",
           "date": "2 days ago",
           "area": "Indiranagar"
         }
-      ]
+      ],
+      "offers": [
+        { "id": "o1", "title": "Summer Glow Package", "description": "20% off on all facial treatments this month", "discountPercent": 20, "validUntil": "2026-07-31", "code": "GLOW20", "isActive": true },
+        { "id": "o2", "title": "Bridal Early Bird", "description": "Book bridal package 3 months ahead and get 15% off", "discountPercent": 15, "validUntil": "2026-12-31", "code": "BRIDE15", "isActive": true }
+      ],
+      "phone": "+91 80 4123 4567",
+      "email": "bonjour@maisondelor.com",
+      "address": "100 Feet Road, Indiranagar, Bangalore"
     },
     {
       "id": "2",
@@ -42,7 +49,7 @@
       "area": "Koramangala",
       "rating": 4.8,
       "reviewCount": 218,
-      "priceRange": "₹₹₹",
+      "priceRange": "$$$",
       "images": [
         "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&q=80&w=800",
         "https://images.unsplash.com/photo-1562322140-8baeececf3df?auto=format&fit=crop&q=80&w=800"
@@ -56,9 +63,14 @@
       "specialties": ["Luxury Spa Treatments", "HydraFacials", "Collagen Therapies"],
       "isLuxury": true,
       "isFeatured": true,
-      "description": "Aura Premium Wellness offers a transcendent escape from the city’s concrete noise. Unwind in private state-of-the-art therapist rooms with customizable aromatherapy profiles, state-of-the-art oxygen-infused showers, and elite skincare solutions.",
+      "description": "Aura Premium Wellness offers a transcendent escape from the city's concrete noise. Unwind in private state-of-the-art therapist rooms with customizable aromatherapy profiles, state-of-the-art oxygen-infused showers, and elite skincare solutions.",
       "reviewsCount": 218,
-      "reviews": []
+      "reviews": [],
+      "offers": [
+        { "id": "o3", "title": "Weekend Spa Retreat", "description": "Buy 2 spa treatments, get 1 free on weekends", "discountPercent": 33, "validUntil": "2026-08-15", "code": "WEEKEND33", "isActive": true }
+      ],
+      "phone": "+91 80 4222 8888",
+      "address": "7th Block, Koramangala, Bangalore"
     },
     {
       "id": "3",
@@ -66,7 +78,7 @@
       "area": "Whitefield",
       "rating": 4.7,
       "reviewCount": 154,
-      "priceRange": "₹₹",
+      "priceRange": "$$",
       "images": [
         "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&q=80&w=800",
         "https://images.unsplash.com/photo-1621605815971-fbc98d665033?auto=format&fit=crop&q=80&w=800"
@@ -81,7 +93,12 @@
       "isFeatured": true,
       "description": "Located within the tech corridor of Whitefield, Gilded Groom Barbers provides state-of-the-art executive aesthetics. Relax in genuine vintage leather chairs while our certified master barbers sculpt coordinates utilizing fine high-gravity sandalwood oils.",
       "reviewsCount": 154,
-      "reviews": []
+      "reviews": [],
+      "offers": [
+        { "id": "o4", "title": "First Visit Special", "description": "25% off your first grooming package", "discountPercent": 25, "validUntil": "2026-09-30", "code": "FIRST25", "isActive": true }
+      ],
+      "phone": "+91 80 4567 8901",
+      "address": "12th Main, Whitefield, Bangalore"
     },
     {
       "id": "4",
@@ -89,7 +106,7 @@
       "area": "Jayanagar",
       "rating": 4.95,
       "reviewCount": 98,
-      "priceRange": "₹₹₹",
+      "priceRange": "$$$",
       "images": [
         "https://images.unsplash.com/photo-1595425970377-c9703cf48b6d?auto=format&fit=crop&q=80&w=800",
         "https://images.unsplash.com/photo-1607613009820-a29f7bb81c04?auto=format&fit=crop&q=80&w=800"
@@ -104,7 +121,9 @@
       "isFeatured": false,
       "description": "Nestled among green, historical Jayanagar, The Indigo Alchemist is a haven for plant-derived premium restoration and slow fashion hair. We use only biological active elixirs alongside traditional East Asian scalp micro-steamers.",
       "reviewsCount": 98,
-      "reviews": []
+      "reviews": [],
+      "phone": "+91 80 4789 0123",
+      "address": "4th Block, Jayanagar, Bangalore"
     },
     {
       "id": "5",
@@ -112,7 +131,7 @@
       "area": "HSR Layout",
       "rating": 4.65,
       "reviewCount": 76,
-      "priceRange": "₹₹",
+      "priceRange": "$$",
       "images": [
         "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&q=80&w=800"
       ],
@@ -124,9 +143,14 @@
       "specialties": ["Keratin Restoration", "Gold Gel Overlay", "Duo Quick Shifting"],
       "isLuxury": true,
       "isFeatured": false,
-      "description": "Welcome to HSR Layout’s premium quick-curated salon experience. Our focus at Crown & Coat is delivering elite beauty coordinates for busy professionals. Walk in exhausted, leave radiant in under ninety minutes.",
+      "description": "Welcome to HSR Layout's premium quick-curated salon experience. Our focus at Crown & Coat is delivering elite beauty coordinates for busy professionals. Walk in exhausted, leave radiant in under ninety minutes.",
       "reviewsCount": 76,
-      "reviews": []
+      "reviews": [],
+      "offers": [
+        { "id": "o5", "title": "Student Special", "description": "15% off for students with valid ID", "discountPercent": 15, "validUntil": "2026-12-31", "code": "STUDENT15", "isActive": true }
+      ],
+      "phone": "+91 80 4901 2345",
+      "address": "Sector 2, HSR Layout, Bangalore"
     },
     {
       "id": "6",
@@ -134,7 +158,7 @@
       "area": "Banaswadi",
       "rating": 4.88,
       "reviewCount": 112,
-      "priceRange": "₹₹₹",
+      "priceRange": "$$$",
       "images": [
         "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&q=80&w=800"
       ],
@@ -148,7 +172,9 @@
       "isFeatured": false,
       "description": "Maison de l'Homme is a boutique luxury concept sanctuary specifically for executive male beauty and grooming in Banaswadi. Complete with high-contrast obsidian backplanes, comfortable leather pods, and premium single-malt tasting logs.",
       "reviewsCount": 112,
-      "reviews": []
+      "reviews": [],
+      "phone": "+91 80 5123 4567",
+      "address": "Banaswadi Main Road, Bangalore"
     }
   ],
   "bookings": []

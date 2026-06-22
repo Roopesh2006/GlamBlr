@@ -33,7 +33,8 @@ export default function StyleQuiz({ isOpen, onClose, onSelectSalonToBook, salons
   if (!isOpen) return null;
 
   const handleSelectOption = (questionKey: string, value: string) => {
-    setAnswers((prev) => ({ ...prev, [questionKey]: value }));
+    const nextAnswers = { ...answers, [questionKey]: value };
+    setAnswers(nextAnswers);
     
     if (step < 5) {
       setStep((prev) => prev + 1);
@@ -42,17 +43,16 @@ export default function StyleQuiz({ isOpen, onClose, onSelectSalonToBook, salons
       setIsLoading(true);
       setTimeout(() => {
         setIsLoading(false);
-        calculateBestMatches();
-      }, 3000);
+        calculateBestMatches(nextAnswers);
+      }, 2500);
     }
   };
 
-  const calculateBestMatches = () => {
-    // Generate a persona based on vibe
-    const vibe = answers.vibe || 'Natural Glow';
-    const concern = answers.concern || 'Color refresh';
-    const budget = answers.budget || '₹₹₹';
-    const area = answers.area || 'Anywhere';
+  const calculateBestMatches = (currentAnswers: Record<string, string>) => {
+    const vibe = currentAnswers.vibe || 'Natural Glow';
+    const concern = currentAnswers.concern || 'Color refresh';
+    const budget = currentAnswers.budget || '$$$';
+    const area = currentAnswers.area || 'Anywhere';
 
     let title = 'The Glow Goddess';
     let description = 'You embody pure classic luxury and radiant glamour. You look for elite service standards, nourishing botanical elixirs, and bespoke custom coloring.';
@@ -68,13 +68,10 @@ export default function StyleQuiz({ isOpen, onClose, onSelectSalonToBook, salons
       description = 'You seek deep inner tranquility, organic skin treatments, and holistic luxury. You value quiet spa cocoons and high-density blowouts.';
     }
 
-    // Filter and score all salons based on traits
     const scoredSalons = salons.map((salon) => {
-      let score = 70; // baseline
+      let score = 70;
 
-      // Area bonus
       if (area !== 'Anywhere' && area !== 'Any') {
-        // map answers areas (North BLR / South BLR / etc) to actual salon areas
         const salonArea = salon.area;
         const matchesArea = 
           (area === 'North BLR' && salonArea === 'Banaswadi') ||
@@ -83,31 +80,25 @@ export default function StyleQuiz({ isOpen, onClose, onSelectSalonToBook, salons
         if (matchesArea) score += 15;
       }
 
-      // Budget match
-      if (salon.priceRange === budget) {
+      const priceMap: Record<string, string> = { '$$': '$$', '$$$': '$$$', '$$$$': '$$$$' };
+      const salonPrice = priceMap[salon.priceRange] || salon.priceRange;
+      const selectedPrice = priceMap[budget] || budget;
+      if (salonPrice === selectedPrice) {
         score += 15;
-      } else if (Math.abs(salon.priceRange.length - budget.length) === 1) {
+      } else if (Math.abs(salonPrice.length - selectedPrice.length) === 1) {
         score += 5;
       }
 
-      // Specialty / service category matchup
-      const hasBridalConcern = concern === 'Color refresh' || concern === 'Deep treatment';
       if (salon.isLuxury && (vibe === 'Bold Glam' || vibe === 'Natural Glow')) {
         score += 10;
       }
 
-      // clamp score
       score = Math.min(98, Math.max(82, score));
-      // add a tiny bit of random realism
       score += Math.floor(Math.random() * 2);
 
-      return {
-        salon,
-        matchPercentage: score
-      };
+      return { salon, matchPercentage: score };
     });
 
-    // Sort by match percentage
     const topMatches = scoredSalons
       .sort((a, b) => b.matchPercentage - a.matchPercentage)
       .slice(0, 3);
@@ -120,19 +111,25 @@ export default function StyleQuiz({ isOpen, onClose, onSelectSalonToBook, salons
     });
   };
 
-  const getStepHeaderValue = () => {
-    return Math.floor((step / 5) * 100);
+  const getStepProgress = () => {
+    return Math.floor(((step - 1) / 5) * 100);
+  };
+
+  const formatPrice = (range: string) => {
+    const map: Record<string, string> = {
+      '$$': 'Signature ($$)',
+      '$$$': 'Premium ($$$)',
+      '$$$$': 'Ultra Luxury ($$$$)'
+    };
+    return map[range] || range;
   };
 
   return (
     <div id="style_quiz_modal" className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Semi-transparent backdrop overlay */}
       <div className="absolute inset-0 bg-[#07070E] bg-opacity-80 backdrop-blur-md" onClick={onClose} />
 
-      {/* Main glass card modal container */}
       <div className="relative w-full max-w-2xl bg-[#0F0F1A] border border-[rgba(212,175,55,0.25)] rounded-2xl p-6 md:p-8 overflow-y-auto max-h-[90vh] shadow-[0_0_50px_rgba(212,175,55,0.25)] z-10 text-white flex flex-col justify-between">
         
-        {/* Header decoration */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-[#D4AF37] animate-pulse" />
@@ -143,18 +140,14 @@ export default function StyleQuiz({ isOpen, onClose, onSelectSalonToBook, salons
           </button>
         </div>
 
-        {/* LOADING STATE FOR DNA helix simulation */}
         {isLoading && (
           <div className="my-10 flex flex-col items-center justify-center py-12 text-center">
-            {/* The rotating DNA spirals using visual pure absolute CSS geometry */}
             <div className="relative w-16 h-24 mb-6 flex justify-between">
-              {/* Helix strand A */}
               <div className="absolute inset-0 flex flex-col justify-between items-center animate-spin" style={{ animationDuration: '3s' }}>
                 <div className="w-4 h-4 rounded-full bg-[#D4AF37] shadow-[0_0_12px_#D4AF37]"></div>
                 <div className="w-0.5 h-16 bg-gradient-to-b from-[#D4AF37] to-[#FF6B9D]"></div>
                 <div className="w-4 h-4 rounded-full bg-[#FF6B9D] shadow-[0_0_12px_#FF6B9D]"></div>
               </div>
-              {/* Helix strand B with delay */}
               <div className="absolute inset-0 flex flex-col justify-between items-center animate-spin" style={{ animationDuration: '3s', animationDelay: '-1.5s' }}>
                 <div className="w-4 h-4 rounded-full bg-[#FF6B9D] shadow-[0_0_12px_#FF6B9D]"></div>
                 <div className="w-0.5 h-16 bg-gradient-to-b from-[#FF6B9D] to-[#D4AF37]"></div>
@@ -166,21 +159,18 @@ export default function StyleQuiz({ isOpen, onClose, onSelectSalonToBook, salons
           </div>
         )}
 
-        {/* QUIZ ACTIVE STEPS */}
         {!isLoading && !profileResult && (
           <div>
-            {/* Progress bar */}
             <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden mb-8">
               <div
                 className="h-full bg-gradient-to-r from-[#D4AF37] via-[#F5D97F] to-[#A07D1A] transition-all duration-300"
-                style={{ width: `${getStepHeaderValue()}%` }}
+                style={{ width: `${getStepProgress()}%` }}
               />
             </div>
 
-            {/* Q1: What's your vibe? */}
             {step === 1 && (
               <div className="animate-fadeIn">
-                <span className="text-xs text-[#D4AF37] tracking-[0.2em] font-bold uppercase">DNA Diagnostics • Step 1 of 5</span>
+                <span className="text-xs text-[#D4AF37] tracking-[0.2em] font-bold uppercase">DNA Diagnostics - Step 1 of 5</span>
                 <h4 className="text-xl md:text-2xl font-serif text-[#FFF] mt-1 mb-6">Describe your primary stylistic vibe:</h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {[
@@ -203,10 +193,9 @@ export default function StyleQuiz({ isOpen, onClose, onSelectSalonToBook, salons
               </div>
             )}
 
-            {/* Q2: Hair Length */}
             {step === 2 && (
               <div className="animate-fadeIn">
-                <span className="text-xs text-[#D4AF37] tracking-[0.2em] font-bold uppercase">DNA Diagnostics • Step 2 of 5</span>
+                <span className="text-xs text-[#D4AF37] tracking-[0.2em] font-bold uppercase">DNA Diagnostics - Step 2 of 5</span>
                 <h4 className="text-xl md:text-2xl font-serif text-[#FFF] mt-1 mb-6">What is your current hair configuration:</h4>
                 <div className="grid grid-cols-2 gap-4">
                   {[
@@ -228,10 +217,9 @@ export default function StyleQuiz({ isOpen, onClose, onSelectSalonToBook, salons
               </div>
             )}
 
-            {/* Q3: Top concern today? */}
             {step === 3 && (
               <div className="animate-fadeIn">
-                <span className="text-xs text-[#D4AF37] tracking-[0.2em] font-bold uppercase">DNA Diagnostics • Step 3 of 5</span>
+                <span className="text-xs text-[#D4AF37] tracking-[0.2em] font-bold uppercase">DNA Diagnostics - Step 3 of 5</span>
                 <h4 className="text-xl md:text-2xl font-serif text-[#FFF] mt-1 mb-6">What is your primary focus / concern today?</h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {[
@@ -253,16 +241,15 @@ export default function StyleQuiz({ isOpen, onClose, onSelectSalonToBook, salons
               </div>
             )}
 
-            {/* Q4: Budget preference? */}
             {step === 4 && (
               <div className="animate-fadeIn">
-                <span className="text-xs text-[#D4AF37] tracking-[0.2em] font-bold uppercase">DNA Diagnostics • Step 4 of 5</span>
+                <span className="text-xs text-[#D4AF37] tracking-[0.2em] font-bold uppercase">DNA Diagnostics - Step 4 of 5</span>
                 <h4 className="text-xl md:text-2xl font-serif text-[#FFF] mt-1 mb-6">Select your luxury quotient tier:</h4>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   {[
-                    { label: 'High-Street Chic', val: '₹₹', desc: 'Accessible master-level cuts' },
-                    { label: 'Premium Indulgence', val: '₹₹₹', desc: 'Signature elixirs & premium styling' },
-                    { label: 'Elite Pure Luxury', val: '₹₹₹₹', desc: 'Private boudoirs, imported gold leaf art' }
+                    { label: 'High-Street Chic', val: '$$', desc: 'Accessible master-level cuts' },
+                    { label: 'Premium Indulgence', val: '$$$', desc: 'Signature elixirs & premium styling' },
+                    { label: 'Elite Pure Luxury', val: '$$$$', desc: 'Private boudoirs, imported gold leaf art' }
                   ].map((opt) => (
                     <button
                       key={opt.val}
@@ -278,10 +265,9 @@ export default function StyleQuiz({ isOpen, onClose, onSelectSalonToBook, salons
               </div>
             )}
 
-            {/* Q5: Preferred area? */}
             {step === 5 && (
               <div className="animate-fadeIn">
-                <span className="text-xs text-[#D4AF37] tracking-[0.2em] font-bold uppercase">DNA Diagnostics • Step 5 of 5</span>
+                <span className="text-xs text-[#D4AF37] tracking-[0.2em] font-bold uppercase">DNA Diagnostics - Step 5 of 5</span>
                 <h4 className="text-xl md:text-2xl font-serif text-[#FFF] mt-1 mb-6">Choose your preferred Bangalore geographic zone:</h4>
                 <div className="grid grid-cols-2 gap-4">
                   {[
@@ -306,10 +292,8 @@ export default function StyleQuiz({ isOpen, onClose, onSelectSalonToBook, salons
           </div>
         )}
 
-        {/* RESULTS SCREEN */}
         {!isLoading && profileResult && (
           <div className="animate-fadeIn">
-            {/* Persona header card */}
             <div className="relative text-center p-6 bg-gradient-to-tr from-[rgba(22,22,37,0.7)] via-[rgba(212,175,55,0.06)] to-[rgba(255,107,157,0.06)] border border-[rgba(212,175,55,0.2)] rounded-2xl mb-8">
               <div className="absolute top-3 right-3 flex items-center gap-1.5 px-3 py-1 scale-90 border border-[rgba(212,175,55,0.4)] rounded-full bg-black/40 text-[#D4AF37] text-xs font-bold uppercase tracking-wider">
                 <Shield className="w-3.5 h-3.5 fill-[#D4AF37]" /> Checked Profile
@@ -323,7 +307,6 @@ export default function StyleQuiz({ isOpen, onClose, onSelectSalonToBook, salons
               <p className="text-sm text-[#8888AA] mt-3 max-w-lg mx-auto leading-relaxed">{profileResult.description}</p>
             </div>
 
-            {/* Matched salons */}
             <h5 className="font-serif italic text-lg text-white mb-4">Your Gold Matched Salons:</h5>
             <div className="space-y-4 mb-6">
               {profileResult.matchedSalons.map(({ salon, matchPercentage }) => (
@@ -344,7 +327,7 @@ export default function StyleQuiz({ isOpen, onClose, onSelectSalonToBook, salons
                         {matchPercentage}% compatibility Match
                       </div>
                     </div>
-                    <p className="text-xs text-[#8888AA] mt-1">{salon.area || "Bengaluru"} • Star Rating {salon.rating || 0} ★ • {salon.priceRange || "₹₹"}</p>
+                    <p className="text-xs text-[#8888AA] mt-1">{salon.area || "Bengaluru"} - Star Rating {salon.rating || 0} - {formatPrice(salon.priceRange)}</p>
                     <p className="text-xs text-white/70 line-clamp-1 mt-1.5 italic">"{salon.description || ""}"</p>
                   </div>
                   <button
@@ -365,6 +348,7 @@ export default function StyleQuiz({ isOpen, onClose, onSelectSalonToBook, salons
                 onClick={() => {
                   setStep(1);
                   setProfileResult(null);
+                  setAnswers({});
                 }}
                 className="px-5 py-2.5 rounded-xl border border-[rgba(212,175,55,0.3)] hover:border-[#D4AF37] text-white/80 hover:text-white text-xs font-semibold hover:bg-white/5 transition-all"
               >
