@@ -9,6 +9,8 @@ interface AdminPortalProps {
   bookings: Booking[];
   onRefreshData: () => void;
   appDarkMode?: boolean;
+  whatsappNumber?: string;
+  tallyFormId?: string;
 }
 
 export default function AdminPortal({
@@ -17,9 +19,12 @@ export default function AdminPortal({
   salons,
   bookings,
   onRefreshData,
-  appDarkMode = false
+  appDarkMode = false,
+  whatsappNumber = '916380691764',
+  tallyFormId = ''
 }: AdminPortalProps) {
   const [activeTab, setActiveTab] = useState<'join' | 'owner' | 'admin'>('join');
+  const [joinFormType, setJoinFormType] = useState<'whatsapp' | 'tally'>('whatsapp');
 
   // WhatsApp Form states
   const [joinShopName, setJoinShopName] = useState('');
@@ -40,6 +45,27 @@ export default function AdminPortal({
   const [adminUsername, setAdminUsername] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
+
+  // Supabase states
+  const [supabaseStatus, setSupabaseStatus] = useState<any>(null);
+
+  const fetchSupabaseStatus = async () => {
+    try {
+      const res = await fetch('/api/supabase-status');
+      if (res.ok) {
+        const data = await res.json();
+        setSupabaseStatus(data);
+      }
+    } catch (e) {
+      console.error("Failed to query Supabase status:", e);
+    }
+  };
+
+  useEffect(() => {
+    if (isOpen && activeTab === 'admin' && isAdminAuthenticated) {
+      fetchSupabaseStatus();
+    }
+  }, [isOpen, activeTab, isAdminAuthenticated]);
 
   // Create Salon input states
   const [newSalonName, setNewSalonName] = useState('');
@@ -88,7 +114,7 @@ export default function AdminPortal({
       `✦ DESIGN CONCEPT & HISTORY: ${joinDescription || "A high-end styling lounge."}`;
 
     // Target WhatsApp endpoint - open in new window
-    const waUrl = `https://wa.me/919900012345?text=${encodeURIComponent(compiledMessage)}`;
+    const waUrl = `https://wa.me/${whatsappNumber.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(compiledMessage)}`;
     window.open(waUrl, '_blank');
   };
 
@@ -279,7 +305,7 @@ export default function AdminPortal({
         {/* Scrollable central content */}
         <div className="flex-1 overflow-y-auto p-6 md:p-8">
 
-          {/* TAB 1: JOIN AS PARTNER (GFORM WHATSAPP REDIRECT) */}
+          {/* TAB 1: JOIN AS PARTNER (GFORM WHATSAPP REDIRECT or TALLY EMBED) */}
           {activeTab === 'join' && (
             <div className="space-y-6 max-w-2xl mx-auto">
               <div className="text-center space-y-2">
@@ -290,106 +316,146 @@ export default function AdminPortal({
                   Marketplace Partnership Request
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto">
-                  Complete your boutique salon profile. Upon submission, our platform core maps your coordinates and prepares a direct listing audit via WhatsApp.
+                  Complete your boutique salon profile. Upon submission, our platform core maps your coordinates and prepares a direct listing audit.
                 </p>
               </div>
 
-              <form onSubmit={handleJoinSubmitWhatsapp} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-mono font-bold tracking-wider uppercase text-slate-500 dark:text-slate-400">Shop Name *</label>
-                  <input
-                    type="text"
-                    required
-                    value={joinShopName}
-                    onChange={(e) => setJoinShopName(e.target.value)}
-                    placeholder="e.g. Silk Essence Salon"
-                    className="w-full bg-[#FAF7F2] dark:bg-[#161625] border border-[#E1DBCE] dark:border-indigo-950 px-3 py-2 text-xs rounded-lg focus:outline-none focus:border-[#A07D1A] text-slate-800 dark:text-slate-100"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-mono font-bold tracking-wider uppercase text-slate-500 dark:text-slate-400">Owner / rep Name *</label>
-                  <input
-                    type="text"
-                    required
-                    value={joinOwnerName}
-                    onChange={(e) => setJoinOwnerName(e.target.value)}
-                    placeholder="e.g. Ramesh Hegde"
-                    className="w-full bg-[#FAF7F2] dark:bg-[#161625] border border-[#E1DBCE] dark:border-indigo-950 px-3 py-2 text-xs rounded-lg focus:outline-none focus:border-[#A07D1A] text-slate-800 dark:text-slate-100"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-mono font-bold tracking-wider uppercase text-slate-500 dark:text-slate-400">Contact WhatsApp Number *</label>
-                  <input
-                    type="tel"
-                    required
-                    value={joinContact}
-                    onChange={(e) => setJoinContact(e.target.value)}
-                    placeholder="e.g. +91 99000 12345"
-                    className="w-full bg-[#FAF7F2] dark:bg-[#161625] border border-[#E1DBCE] dark:border-indigo-950 px-3 py-2 text-xs rounded-lg focus:outline-none focus:border-[#A07D1A] text-slate-800 dark:text-slate-100"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-mono font-bold tracking-wider uppercase text-slate-500 dark:text-slate-400">Sector Coordinates *</label>
-                  <select
-                    value={joinArea}
-                    onChange={(e) => setJoinArea(e.target.value)}
-                    className="w-full bg-[#FAF7F2] dark:bg-[#161625] border border-[#E1DBCE] dark:border-indigo-950 px-3 py-2.5 text-xs rounded-lg focus:outline-none text-slate-800 dark:text-slate-100"
+              {/* Tally & WhatsApp toggle selector buttons */}
+              {tallyFormId && (
+                <div className="flex border border-[#E1DBCE] dark:border-indigo-950/60 p-1 justify-between gap-1 max-w-xs mx-auto mb-6 rounded-xl bg-neutral-50 dark:bg-neutral-900/50">
+                  <button
+                    type="button"
+                    onClick={() => setJoinFormType('whatsapp')}
+                    className={`flex-1 py-1.5 text-[10px] font-mono uppercase tracking-wider font-extrabold transition-all rounded-lg cursor-pointer ${
+                      joinFormType === 'whatsapp'
+                        ? 'bg-[#A07D1A] text-white dark:bg-amber-400 dark:text-neutral-900 shadow-xs'
+                        : 'text-slate-500 hover:text-[#A07D1A] dark:text-slate-400'
+                    }`}
                   >
-                    <option value="Indiranagar">Indiranagar</option>
-                    <option value="Koramangala">Koramangala</option>
-                    <option value="Whitefield">Whitefield</option>
-                    <option value="Jayanagar">Jayanagar</option>
-                    <option value="HSR Layout">HSR Layout</option>
-                    <option value="Banaswadi">Banaswadi</option>
-                  </select>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-mono font-bold tracking-wider uppercase text-slate-500 dark:text-slate-400">Pricing Tier estimate</label>
-                  <select
-                    value={joinPrice}
-                    onChange={(e) => setJoinPrice(e.target.value)}
-                    className="w-full bg-[#FAF7F2] dark:bg-[#161625] border border-[#E1DBCE] dark:border-indigo-950 px-3 py-2.5 text-xs rounded-lg focus:outline-none text-slate-800 dark:text-slate-100"
+                    WA Link
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setJoinFormType('tally')}
+                    className={`flex-1 py-1.5 text-[10px] font-mono uppercase tracking-wider font-extrabold transition-all rounded-lg cursor-pointer ${
+                      joinFormType === 'tally'
+                        ? 'bg-[#A07D1A] text-white dark:bg-amber-400 dark:text-neutral-900 shadow-xs'
+                        : 'text-slate-500 hover:text-[#A07D1A] dark:text-slate-400'
+                    }`}
                   >
-                    <option value="₹₹">Signature Standard (₹₹)</option>
-                    <option value="₹₹₹">Premium Luxury (₹₹ showcase)</option>
-                    <option value="₹₹₹₹">Ultra Prestige Elite (₹₹₹₹ master)</option>
-                  </select>
+                    Tally Form
+                  </button>
                 </div>
+              )}
 
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-mono font-bold tracking-wider uppercase text-slate-500 dark:text-slate-400">Premium Services List</label>
-                  <input
-                    type="text"
-                    value={joinServices}
-                    onChange={(e) => setJoinServices(e.target.value)}
-                    placeholder="e.g. Moroccan Oil Spa, HydraFacial, Nail Art"
-                    className="w-full bg-[#FAF7F2] dark:bg-[#161625] border border-[#E1DBCE] dark:border-indigo-950 px-3 py-2 text-xs rounded-lg focus:outline-none focus:border-[#A07D1A] text-slate-800 dark:text-slate-100"
+              {joinFormType === 'whatsapp' ? (
+                <form onSubmit={handleJoinSubmitWhatsapp} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-mono font-bold tracking-wider uppercase text-slate-500 dark:text-slate-400">Shop Name *</label>
+                    <input
+                      type="text"
+                      required
+                      value={joinShopName}
+                      onChange={(e) => setJoinShopName(e.target.value)}
+                      placeholder="e.g. Silk Essence Salon"
+                      className="w-full bg-[#FAF7F2] dark:bg-[#161625] border border-[#E1DBCE] dark:border-indigo-950 px-3 py-2 text-xs rounded-lg focus:outline-none focus:border-[#A07D1A] text-slate-800 dark:text-slate-100"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-mono font-bold tracking-wider uppercase text-slate-500 dark:text-slate-400">Owner / rep Name *</label>
+                    <input
+                      type="text"
+                      required
+                      value={joinOwnerName}
+                      onChange={(e) => setJoinOwnerName(e.target.value)}
+                      placeholder="e.g. Ramesh Hegde"
+                      className="w-full bg-[#FAF7F2] dark:bg-[#161625] border border-[#E1DBCE] dark:border-indigo-950 px-3 py-2 text-xs rounded-lg focus:outline-none focus:border-[#A07D1A] text-slate-800 dark:text-slate-100"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-mono font-bold tracking-wider uppercase text-slate-500 dark:text-slate-400">Contact WhatsApp Number *</label>
+                    <input
+                      type="tel"
+                      required
+                      value={joinContact}
+                      onChange={(e) => setJoinContact(e.target.value)}
+                      placeholder="e.g. +91 99000 12345"
+                      className="w-full bg-[#FAF7F2] dark:bg-[#161625] border border-[#E1DBCE] dark:border-indigo-950 px-3 py-2 text-xs rounded-lg focus:outline-none focus:border-[#A07D1A] text-slate-800 dark:text-slate-100"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-mono font-bold tracking-wider uppercase text-slate-500 dark:text-slate-400">Sector Coordinates *</label>
+                    <select
+                      value={joinArea}
+                      onChange={(e) => setJoinArea(e.target.value)}
+                      className="w-full bg-[#FAF7F2] dark:bg-[#161625] border border-[#E1DBCE] dark:border-indigo-950 px-3 py-2.5 text-xs rounded-lg focus:outline-none text-slate-800 dark:text-slate-100"
+                    >
+                      <option value="Indiranagar">Indiranagar</option>
+                      <option value="Koramangala">Koramangala</option>
+                      <option value="Whitefield">Whitefield</option>
+                      <option value="Jayanagar">Jayanagar</option>
+                      <option value="HSR Layout">HSR Layout</option>
+                      <option value="Banaswadi">Banaswadi</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-mono font-bold tracking-wider uppercase text-slate-500 dark:text-slate-400">Pricing Tier estimate</label>
+                    <select
+                      value={joinPrice}
+                      onChange={(e) => setJoinPrice(e.target.value)}
+                      className="w-full bg-[#FAF7F2] dark:bg-[#161625] border border-[#E1DBCE] dark:border-indigo-950 px-3 py-2.5 text-xs rounded-lg focus:outline-none text-slate-800 dark:text-slate-100"
+                    >
+                      <option value="₹₹">Signature Standard (₹₹)</option>
+                      <option value="₹₹₹">Premium Luxury (₹₹ showcase)</option>
+                      <option value="₹₹₹₹">Ultra Prestige Elite (₹₹₹₹ master)</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-mono font-bold tracking-wider uppercase text-slate-500 dark:text-slate-400">Premium Services List</label>
+                    <input
+                      type="text"
+                      value={joinServices}
+                      onChange={(e) => setJoinServices(e.target.value)}
+                      placeholder="e.g. Moroccan Oil Spa, HydraFacial, Nail Art"
+                      className="w-full bg-[#FAF7F2] dark:bg-[#161625] border border-[#E1DBCE] dark:border-indigo-950 px-3 py-2 text-xs rounded-lg focus:outline-none focus:border-[#A07D1A] text-slate-800 dark:text-slate-100"
+                    />
+                  </div>
+
+                  <div className="md:col-span-2 space-y-1.5">
+                    <label className="text-[10px] font-mono font-bold tracking-wider uppercase text-slate-500 dark:text-slate-400">Design Concept & Description</label>
+                    <textarea
+                      rows={2.5}
+                      value={joinDescription}
+                      onChange={(e) => setJoinDescription(e.target.value)}
+                      placeholder="Describe your design aesthetics, premium brands you carry (e.g., Dyson, Chanel, Kérastase), and floor architecture..."
+                      className="w-full bg-[#FAF7F2] dark:bg-[#161625] border border-[#E1DBCE] dark:border-indigo-950 px-3 py-2 text-xs rounded-lg focus:outline-none focus:border-[#A07D1A] text-slate-800 dark:text-slate-100"
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="md:col-span-2 mt-2 px-6 py-3.5 bg-[#A07D1A] hover:bg-[#805C06] dark:bg-amber-400 dark:text-neutral-900 text-white font-extrabold rounded-xl text-xs uppercase tracking-widest cursor-pointer hover:shadow-md transition-all flex items-center justify-center gap-1.5"
+                  >
+                    <Store className="w-4 h-4 fill-current" /> Apply via Direct WhatsApp Redirection
+                  </button>
+                </form>
+              ) : (
+                <div className="bg-white dark:bg-[#11111a] border border-[#E1DBCE] dark:border-indigo-950/80 p-2 rounded-2xl shadow-xs overflow-hidden h-[540px] relative">
+                  <iframe
+                    src={`https://tally.so/embed/${tallyFormId}?alignLeft=1&hideTitle=1&transparentBackground=1&dynamicHeight=1`}
+                    width="100%"
+                    height="100%"
+                    title="Official Salon Intake Form"
+                    className="border-0 rounded-xl"
                   />
                 </div>
-
-                <div className="md:col-span-2 space-y-1.5">
-                  <label className="text-[10px] font-mono font-bold tracking-wider uppercase text-slate-500 dark:text-slate-400">Design Concept & Description</label>
-                  <textarea
-                    rows={2.5}
-                    value={joinDescription}
-                    onChange={(e) => setJoinDescription(e.target.value)}
-                    placeholder="Describe your design aesthetics, premium brands you carry (e.g., Dyson, Chanel, Kérastase), and floor architecture..."
-                    className="w-full bg-[#FAF7F2] dark:bg-[#161625] border border-[#E1DBCE] dark:border-indigo-950 px-3 py-2 text-xs rounded-lg focus:outline-none focus:border-[#A07D1A] text-slate-800 dark:text-slate-100"
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  className="md:col-span-2 mt-2 px-6 py-3.5 bg-[#A07D1A] hover:bg-[#805C06] dark:bg-amber-400 dark:text-neutral-900 text-white font-extrabold rounded-xl text-xs uppercase tracking-widest cursor-pointer hover:shadow-md transition-all flex items-center justify-center gap-1.5"
-                >
-                  <Store className="w-4 h-4 fill-current" /> Apply via Direct WhatsApp Redirection
-                </button>
-              </form>
+              )}
             </div>
           )}
 
@@ -743,6 +809,106 @@ export default function AdminPortal({
                       </form>
                     </div>
 
+                  </div>
+
+                  {/* Supabase Admin status section */}
+                  <div className="bg-[#12121e] border border-blue-900/40 p-6 rounded-2xl space-y-4 text-left shadow-lg">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-indigo-950 pb-3">
+                      <div>
+                        <h5 className="text-amber-400 font-serif italic text-base font-extrabold flex items-center gap-2">
+                          ⚡ Supabase Cloud Sync Control
+                        </h5>
+                        <p className="text-[11px] text-slate-400 mt-0.5">
+                          Monitor database replication sync state to your Supabase tables.
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={fetchSupabaseStatus}
+                        className="px-3 py-1.5 bg-indigo-950/40 hover:bg-indigo-900/40 border border-indigo-900/65 text-indigo-300 rounded-lg text-[10px] font-mono font-bold uppercase tracking-wider cursor-pointer transition-colors"
+                      >
+                        Refresh Diagnostics
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {/* Stat 1: Connection status */}
+                      <div className="bg-neutral-900/40 border border-indigo-950 px-4 py-3 rounded-xl flex items-center gap-3">
+                        <span className="text-xl">🔌</span>
+                        <div>
+                          <div className="text-[9px] font-mono tracking-wider text-slate-400 uppercase">Supabase Link</div>
+                          <div className={`text-xs font-bold ${supabaseStatus?.connected ? "text-emerald-400" : "text-amber-500"}`}>
+                            {supabaseStatus?.connected ? "CONNECTED (REAL-TIME)" : "DISCONNECTED / UNLINKED"}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Stat 2: Salons table */}
+                      <div className="bg-neutral-900/40 border border-indigo-950 px-4 py-3 rounded-xl flex items-center gap-3">
+                        <span className="text-xl">🏢</span>
+                        <div>
+                          <div className="text-[9px] font-mono tracking-wider text-slate-400 uppercase">salons table</div>
+                          <div className={`text-xs font-bold ${supabaseStatus?.salonsTableOk ? "text-emerald-400" : "text-rose-500"}`}>
+                            {supabaseStatus?.connected ? (supabaseStatus?.salonsTableOk ? "SYNC ACTIVE (READY)" : "TABLE MISSING ⚠️") : "PENDING LINK"}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Stat 3: Bookings table */}
+                      <div className="bg-neutral-900/40 border border-indigo-950 px-4 py-3 rounded-xl flex items-center gap-3">
+                        <span className="text-xl">📅</span>
+                        <div>
+                          <div className="text-[9px] font-mono tracking-wider text-slate-400 uppercase">bookings table</div>
+                          <div className={`text-xs font-bold ${supabaseStatus?.bookingsTableOk ? "text-emerald-400" : "text-rose-500"}`}>
+                            {supabaseStatus?.connected ? (supabaseStatus?.bookingsTableOk ? "SYNC ACTIVE (READY)" : "TABLE MISSING ⚠️") : "PENDING LINK"}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* How to configure Supabase help */}
+                    {(!supabaseStatus?.salonsTableOk || !supabaseStatus?.bookingsTableOk) && (
+                      <div className="bg-[#0b0b11] border border-amber-900/35 p-4 rounded-xl space-y-3">
+                        <div className="text-[10px] uppercase font-mono tracking-widest text-amber-500 font-extrabold flex items-center gap-1">
+                          🛠️ Setup Requirement: Missing Database Tables Detected
+                        </div>
+                        <p className="text-[11px] text-slate-300 leading-relaxed">
+                          To activate Cloud sync, copy and paste this script in your **Supabase Dashboard SQL Editor** and click **Run**. Once created, the warnings will disappear instantly!
+                        </p>
+                        <pre className="text-[10px] leading-relaxed font-mono p-3 bg-black/60 border border-indigo-950/40 text-[#4ade80] rounded-lg overflow-x-auto max-h-[180px] text-left">
+{`-- SQL SCRIPT FOR SUPABASE EDITOR:
+create table salons (
+  id text primary key,
+  name text,
+  area text,
+  rating numeric,
+  "reviewCount" int,
+  "priceRange" text,
+  images jsonb,
+  services jsonb,
+  "openHours" text,
+  specialties jsonb,
+  "isLuxury" boolean,
+  "isFeatured" boolean,
+  description text,
+  "reviewsCount" int,
+  reviews jsonb
+);
+
+create table bookings (
+  id text primary key,
+  "salonId" text,
+  "salonName" text,
+  service jsonb,
+  date text,
+  time text,
+  "customerName" text,
+  "customerPhone" text,
+  status text
+);`}
+                        </pre>
+                      </div>
+                    )}
                   </div>
 
                 </div>

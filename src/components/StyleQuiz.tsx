@@ -7,9 +7,10 @@ interface StyleQuizProps {
   isOpen: boolean;
   onClose: () => void;
   onSelectSalonToBook: (salonId: string) => void;
+  salons?: Salon[];
 }
 
-export default function StyleQuiz({ isOpen, onClose, onSelectSalonToBook }: StyleQuizProps) {
+export default function StyleQuiz({ isOpen, onClose, onSelectSalonToBook, salons = LUX_SALONS }: StyleQuizProps) {
   const [step, setStep] = useState(1);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
@@ -67,8 +68,8 @@ export default function StyleQuiz({ isOpen, onClose, onSelectSalonToBook }: Styl
       description = 'You seek deep inner tranquility, organic skin treatments, and holistic luxury. You value quiet spa cocoons and high-density blowouts.';
     }
 
-    // Filter and score all 12 salons based on traits
-    const scoredSalons = LUX_SALONS.map((salon) => {
+    // Filter and score all salons based on traits
+    const scoredSalons = salons.map((salon) => {
       let score = 70; // baseline
 
       // Area bonus
@@ -331,7 +332,7 @@ export default function StyleQuiz({ isOpen, onClose, onSelectSalonToBook }: Styl
                   className="group flex flex-col sm:flex-row gap-4 items-center bg-[#161625] border border-[rgba(212,175,55,0.15)] rounded-xl p-4 transition-all hover:shadow-[0_0_20px_rgba(212,175,55,0.1)]"
                 >
                   <img
-                    src={salon.images[0]}
+                    src={salon.images?.[0] || "https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&q=80&w=800"}
                     alt={salon.name}
                     className="w-full sm:w-28 h-20 object-cover rounded-lg group-hover:scale-105 transition-transform"
                     referrerPolicy="no-referrer"
@@ -343,8 +344,8 @@ export default function StyleQuiz({ isOpen, onClose, onSelectSalonToBook }: Styl
                         {matchPercentage}% compatibility Match
                       </div>
                     </div>
-                    <p className="text-xs text-[#8888AA] mt-1">{salon.area} • Star Rating {salon.rating} ★ • {salon.priceRange}</p>
-                    <p className="text-xs text-white/70 line-clamp-1 mt-1.5 italic">"{salon.description}"</p>
+                    <p className="text-xs text-[#8888AA] mt-1">{salon.area || "Bengaluru"} • Star Rating {salon.rating || 0} ★ • {salon.priceRange || "₹₹"}</p>
+                    <p className="text-xs text-white/70 line-clamp-1 mt-1.5 italic">"{salon.description || ""}"</p>
                   </div>
                   <button
                     onClick={() => {

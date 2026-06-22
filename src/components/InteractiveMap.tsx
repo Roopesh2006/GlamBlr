@@ -7,6 +7,7 @@ interface InteractiveMapProps {
   onSelectSalon: (salonId: string) => void;
   onBookNow: (salon: Salon) => void;
   appDarkMode?: boolean;
+  googleMapsKey?: string;
 }
 
 // Approximate coordinate offsets for Bangalore layout (centered around MG Road origin)
@@ -19,10 +20,17 @@ const AREA_COORDINATES: Record<string, { x: number; y: number; description: stri
   'Banaswadi': { x: 45, y: 20, description: "The serene north-eastern residential pocket of quiet luxury." }
 };
 
-export default function InteractiveMap({ salons, onSelectSalon, onBookNow, appDarkMode = false }: InteractiveMapProps) {
+export default function InteractiveMap({
+  salons,
+  onSelectSalon,
+  onBookNow,
+  appDarkMode = false,
+  googleMapsKey = ''
+}: InteractiveMapProps) {
   const [selectedArea, setSelectedArea] = useState<string>('All');
   const [selectedSalonId, setSelectedSalonId] = useState<string | null>(null);
   const [hoveredNode, setHoveredNode] = useState<string | null>(null);
+  const [mapMode, setMapMode] = useState<'vector' | 'google'>(googleMapsKey ? 'google' : 'vector');
 
   // Filters salons based on selected map area
   const filteredSalons = useMemo(() => {
@@ -94,100 +102,147 @@ export default function InteractiveMap({ salons, onSelectSalon, onBookNow, appDa
         </div>
       </div>
 
+      {googleMapsKey && (
+        <div className="flex border border-[#E1DBCE] dark:border-indigo-950/60 p-0.5 max-w-[280px] mx-auto sm:mx-0 mb-4 rounded-xl bg-neutral-50 dark:bg-neutral-900/50">
+          <button
+            type="button"
+            onClick={() => setMapMode('vector')}
+            className={`flex-1 py-1.5 px-3 text-[10px] font-mono uppercase tracking-wider font-extrabold transition-all rounded-lg cursor-pointer ${
+              mapMode === 'vector'
+                ? 'bg-[#A07D1A] text-white dark:bg-amber-400 dark:text-neutral-900 shadow-xs'
+                : 'text-slate-500 hover:text-[#A07D1A] dark:text-slate-400'
+            }`}
+          >
+            Blueprints Grid
+          </button>
+          <button
+            type="button"
+            onClick={() => setMapMode('google')}
+            className={`flex-1 py-1.5 px-3 text-[10px] font-mono uppercase tracking-wider font-extrabold transition-all rounded-lg cursor-pointer ${
+              mapMode === 'google'
+                ? 'bg-[#A07D1A] text-white dark:bg-amber-400 dark:text-neutral-900 shadow-xs'
+                : 'text-slate-500 hover:text-[#A07D1A] dark:text-slate-400'
+            }`}
+          >
+            ⚡ Live Google Map
+          </button>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
         
         {/* LEFT COMPONENT (7/12): CUSTOM VECTOR RENDERED CARTOGRAPHY DECK */}
         <div className="lg:col-span-7 relative h-[380px] md:h-[450px] bg-[#FAF7F2] dark:bg-[#0E0E14] border border-[#E1DBCE]/60 dark:border-indigo-950/45 rounded-xl overflow-hidden shadow-inner flex items-center justify-center">
           
-          {/* Subtle Radar circle indicators representing luxury range */}
-          <div className="absolute w-[90%] h-[90%] border border-dashed border-[#D4AF37]/8 dark:border-amber-400/5 rounded-full pointer-events-none animate-spin-slow"></div>
-          <div className="absolute w-[60%] h-[60%] border border-dashed border-[#D4AF37]/12 dark:border-amber-400/8 rounded-full pointer-events-none"></div>
-          <div className="absolute w-[30%] h-[30%] border border-dashed border-[#D4AF37]/15 dark:border-amber-400/10 rounded-full pointer-events-none"></div>
-          
-          {/* Grid crosshair backdrop */}
-          <div className="absolute inset-0 grid grid-cols-6 grid-rows-6 opacity-30 dark:opacity-10 pointer-events-none">
-            {Array.from({ length: 36 }).map((_, i) => (
-              <div key={i} className="border-t border-l border-[#805C06]/10 dark:border-amber-400/5" />
-            ))}
-          </div>
+          {mapMode === 'google' && googleMapsKey ? (
+            <iframe
+              width="100%"
+              height="100%"
+              style={{ border: 0 }}
+              loading="lazy"
+              allowFullScreen
+              referrerPolicy="no-referrer"
+              src={`https://www.google.com/maps/embed/v1/search?key=${googleMapsKey}&q=${encodeURIComponent(
+                selectedSalon 
+                  ? `${selectedSalon.name}, ${selectedSalon.area}, Bengaluru`
+                  : (selectedArea !== 'All' ? `${selectedArea} luxury salons Bengaluru` : "boutique luxury salons in Bengaluru")
+              )}&zoom=${selectedSalon ? 15 : (selectedArea !== 'All' ? 14 : 12)}`}
+              title="Live Google Coordinates Map"
+              className="absolute inset-0 w-full h-full"
+            />
+          ) : (
+            <>
+              {/* Subtle Radar circle indicators representing luxury range */}
+              <div className="absolute w-[90%] h-[90%] border border-dashed border-[#D4AF37]/8 dark:border-amber-400/5 rounded-full pointer-events-none animate-spin-slow"></div>
+              <div className="absolute w-[60%] h-[60%] border border-dashed border-[#D4AF37]/12 dark:border-amber-400/8 rounded-full pointer-events-none"></div>
+              <div className="absolute w-[30%] h-[30%] border border-dashed border-[#D4AF37]/15 dark:border-amber-400/10 rounded-full pointer-events-none"></div>
+              
+              {/* Grid crosshair backdrop */}
+              <div className="absolute inset-0 grid grid-cols-6 grid-rows-6 opacity-30 dark:opacity-10 pointer-events-none">
+                {Array.from({ length: 36 }).map((_, i) => (
+                  <div key={i} className="border-t border-l border-[#805C06]/10 dark:border-amber-400/5" />
+                ))}
+              </div>
 
-          <div className="absolute top-4 left-4 z-10 flex flex-col items-start bg-white/95 dark:bg-[#0A0A10]/95 backdrop-blur-md border border-[#E1DBCE] dark:border-indigo-950/70 p-2.5 rounded-lg text-left shadow-2xs font-mono">
-            <span className="text-[9px] font-bold text-[#A07D1A] dark:text-amber-400">GEO LOCATOR CORE</span>
-            <span className="text-[10px] text-slate-800 dark:text-slate-300 font-extrabold">Origin: Bengaluru MG Rd</span>
-            <span className="text-[8.5px] text-slate-400 mt-0.5">Scale: 1 : 124,000 Precision</span>
-          </div>
+              <div className="absolute top-4 left-4 z-10 flex flex-col items-start bg-white/95 dark:bg-[#0A0A10]/95 backdrop-blur-md border border-[#E1DBCE] dark:border-indigo-950/70 p-2.5 rounded-lg text-left shadow-2xs font-mono">
+                <span className="text-[9px] font-bold text-[#A07D1A] dark:text-amber-400">GEO LOCATOR CORE</span>
+                <span className="text-[10px] text-slate-800 dark:text-slate-300 font-extrabold">Origin: Bengaluru MG Rd</span>
+                <span className="text-[8.5px] text-slate-400 mt-0.5">Scale: 1 : 124,000 Precision</span>
+              </div>
 
-          {/* Dynamic Map Nodes */}
-          <svg className="absolute inset-0 w-full h-full pointer-events-none">
-            {/* Draw connection pathways starting from center to active nodes */}
-            {Object.entries(AREA_COORDINATES).map(([name, coords]) => {
-              const active = selectedArea === 'All' || selectedArea === name;
-              if (!active) return null;
-              return (
-                <line
-                  key={`line-${name}`}
-                  x1="50%"
-                  y1="50%"
-                  x2={`${coords.x}%`}
-                  y2={`${coords.y}%`}
-                  stroke={appDarkMode ? "rgba(245,217,127,0.12)" : "rgba(160,125,26,0.15)"}
-                  strokeWidth="1.5"
-                  strokeDasharray="2 4"
-                />
-              );
-            })}
-          </svg>
+              {/* Dynamic Map Nodes */}
+              <svg className="absolute inset-0 w-full h-full pointer-events-none">
+                {/* Draw connection pathways starting from center to active nodes */}
+                {Object.entries(AREA_COORDINATES).map(([name, coords]) => {
+                  const active = selectedArea === 'All' || selectedArea === name;
+                  if (!active) return null;
+                  return (
+                    <line
+                      key={`line-${name}`}
+                      x1="50%"
+                      y1="50%"
+                      x2={`${coords.x}%`}
+                      y2={`${coords.y}%`}
+                      stroke={appDarkMode ? "rgba(245,217,127,0.12)" : "rgba(160,125,26,0.15)"}
+                      strokeWidth="1.5"
+                      strokeDasharray="2 4"
+                    />
+                  );
+                })}
+              </svg>
 
-          {/* Area Label Pins */}
-          {Object.entries(AREA_COORDINATES).map(([name, coords]) => {
-            const isSelected = selectedArea === name;
-            const isHovered = hoveredNode === name;
-            const hasSalons = salons.some(s => s.area === name);
+              {/* Area Label Pins */}
+              {Object.entries(AREA_COORDINATES).map(([name, coords]) => {
+                const isSelected = selectedArea === name;
+                const isHovered = hoveredNode === name;
+                const hasSalons = salons.some(s => s.area === name);
 
-            if (!hasSalons) return null;
+                if (!hasSalons) return null;
 
-            return (
-              <button
-                key={name}
-                onMouseEnter={() => setHoveredNode(name)}
-                onMouseLeave={() => setHoveredNode(null)}
-                onClick={() => setSelectedArea(name)}
-                style={{ left: `${coords.x}%`, top: `${coords.y}%` }}
-                className="absolute -translate-x-1/2 -translate-y-1/2 z-20 group transition-all cursor-pointer"
-              >
-                {/* Glow Ring */}
-                <span className={`absolute -inset-4 rounded-full transition-all scale-[0.6] opacity-0 group-hover:opacity-100 group-hover:scale-110 duration-500 bg-[#A07D1A]/5 dark:bg-amber-400/5 ${
-                  isSelected ? 'opacity-100 scale-100 bg-[#A07D1A]/10 dark:bg-amber-400/10' : ''
-                }`} />
+                return (
+                  <button
+                    key={name}
+                    onMouseEnter={() => setHoveredNode(name)}
+                    onMouseLeave={() => setHoveredNode(null)}
+                    onClick={() => setSelectedArea(name)}
+                    style={{ left: `${coords.x}%`, top: `${coords.y}%` }}
+                    className="absolute -translate-x-1/2 -translate-y-1/2 z-20 group transition-all cursor-pointer"
+                  >
+                    {/* Glow Ring */}
+                    <span className={`absolute -inset-4 rounded-full transition-all scale-[0.6] opacity-0 group-hover:opacity-100 group-hover:scale-110 duration-500 bg-[#A07D1A]/5 dark:bg-amber-400/5 ${
+                      isSelected ? 'opacity-100 scale-100 bg-[#A07D1A]/10 dark:bg-amber-400/10' : ''
+                    }`} />
 
-                {/* Pin Head */}
-                <div className={`p-1.5 rounded-full transition-all border shadow-lg ${
-                  isSelected 
-                    ? 'bg-[#A07D1A] dark:bg-amber-400 border-white text-white dark:text-neutral-900 scale-110' 
-                    : isHovered
-                    ? 'bg-white dark:bg-indigo-950 border-[#A07D1A] text-[#A07D1A] dark:text-amber-400 scale-105'
-                    : 'bg-[#FCFAF7] dark:bg-[#12121E] border-[#E1DBCE] dark:border-indigo-950 text-slate-500'
-                }`}>
-                  <MapPin className="w-4 h-4 fill-current stroke-[2]" />
-                </div>
+                    {/* Pin Head */}
+                    <div className={`p-1.5 rounded-full transition-all border shadow-lg ${
+                      isSelected 
+                        ? 'bg-[#A07D1A] dark:bg-amber-400 border-white text-white dark:text-neutral-900 scale-110' 
+                        : isHovered
+                        ? 'bg-white dark:bg-indigo-950 border-[#A07D1A] text-[#A07D1A] dark:text-amber-400 scale-105'
+                        : 'bg-[#FCFAF7] dark:bg-[#12121E] border-[#E1DBCE] dark:border-indigo-950 text-slate-500'
+                    }`}>
+                      <MapPin className="w-4 h-4 fill-current stroke-[2]" />
+                    </div>
 
-                {/* sector tag */}
-                <div className="absolute top-8 left-1/2 -translate-x-1/2 bg-white/95 dark:bg-[#12121e]/95 border border-[#E1DBCE]/90 dark:border-indigo-950/80 px-2 py-0.5 rounded-md text-[8.5px] font-mono font-extrabold uppercase tracking-wider text-[#5C534C] dark:text-slate-300 shadow-xs pointer-events-none whitespace-nowrap z-30 group-hover:scale-105 transition-transform">
-                  {name}
-                </div>
-              </button>
-            );
-          })}
+                    {/* sector tag */}
+                    <div className="absolute top-8 left-1/2 -translate-x-1/2 bg-white/95 dark:bg-[#12121e]/95 border border-[#E1DBCE]/90 dark:border-indigo-950/80 px-2 py-0.5 rounded-md text-[8.5px] font-mono font-extrabold uppercase tracking-wider text-[#5C534C] dark:text-slate-300 shadow-xs pointer-events-none whitespace-nowrap z-30 group-hover:scale-105 transition-transform">
+                      {name}
+                    </div>
+                  </button>
+                );
+              })}
 
-          {/* Compass Rose center marker */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full border border-dashed border-[#A07D1A]/30 flex items-center justify-center bg-white/60 dark:bg-black/40 backdrop-blur-xs pointer-events-none">
-            <Compass className="w-4 h-4 text-[#A07D1A] dark:text-amber-400 animate-pulse" />
-          </div>
+              {/* Compass Rose center marker */}
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full border border-dashed border-[#A07D1A]/30 flex items-center justify-center bg-white/60 dark:bg-black/40 backdrop-blur-xs pointer-events-none">
+                <Compass className="w-4 h-4 text-[#A07D1A] dark:text-amber-400 animate-pulse" />
+              </div>
 
-          {/* Selected coordinates watermark */}
-          <div className="absolute bottom-4 right-4 text-right z-10 font-mono text-[9px] text-[#A07D1A] dark:text-amber-500/80 font-bold">
-            LAT: 12.9716° N • LONG: 77.5946° E
-          </div>
+              {/* Selected coordinates watermark */}
+              <div className="absolute bottom-4 right-4 text-right z-10 font-mono text-[9px] text-[#A07D1A] dark:text-amber-500/80 font-bold">
+                LAT: 12.9716° N • LONG: 77.5946° E
+              </div>
+            </>
+          )}
         </div>
 
         {/* RIGHT COMPONENT (5/12): LIST OF LOUNGES IN SELECTED SECTOR */}
@@ -218,7 +273,7 @@ export default function InteractiveMap({ salons, onSelectSalon, onBookNow, appDa
                 >
                   <div className="flex items-start gap-3">
                     <img
-                      src={salon.images[0]}
+                      src={salon.images?.[0] || 'https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&q=80&w=800'}
                       alt={salon.name}
                       className="w-12 h-12 object-cover rounded-lg border border-slate-100 dark:border-neutral-800"
                       referrerPolicy="no-referrer"
@@ -230,20 +285,20 @@ export default function InteractiveMap({ salons, onSelectSalon, onBookNow, appDa
                         </h4>
                         <div className="flex items-center gap-0.5 shrink-0 text-[10px] font-mono text-amber-500 font-extrabold bg-[#FAF7F2] dark:bg-indigo-950/20 px-1.5 py-0.5 rounded border border-[#E1DBCE]/30">
                           <Star className="w-2.5 h-2.5 fill-current" />
-                          <span>{salon.rating}</span>
+                          <span>{salon.rating || 0}</span>
                         </div>
                       </div>
 
                       <div className="flex items-center gap-2 text-[9.5px] text-slate-500 dark:text-slate-400 font-mono mt-1">
-                        <span className="font-bold text-[#A07D1A] dark:text-amber-500">{salon.area}</span>
+                        <span className="font-bold text-[#A07D1A] dark:text-amber-500">{salon.area || "Bengaluru"}</span>
                         <span>•</span>
-                        <span className="font-extrabold">{salon.priceRange}</span>
+                        <span className="font-extrabold">{salon.priceRange || "₹₹"}</span>
                         <span>•</span>
-                        <span>{salon.openHours.split(" - ")[0]} Open</span>
+                        <span>{salon.openHours ? salon.openHours.split(" - ")[0] : "09:00 AM"} Open</span>
                       </div>
 
                       <p className="text-[10px] text-slate-400 dark:text-slate-500 truncate mt-1">
-                        {salon.specialties.slice(0, 2).join(" • ")}
+                        {salon.specialties ? salon.specialties.slice(0, 2).join(" • ") : ""}
                       </p>
                     </div>
                   </div>

@@ -78,6 +78,30 @@ export default function App() {
   const [heroSearchService, setHeroSearchService] = useState('All');
   const [heroSearchPrice, setHeroSearchPrice] = useState('All');
 
+  // Public application configuration variables loaded securely from fullstack backend
+  const [appConfig, setAppConfig] = useState<any>({
+    googleMapsKey: '',
+    emailjsServiceId: '',
+    emailjsTemplateId: '',
+    emailjsPublicKey: '',
+    tallyFormId: '',
+    whatsappNumber: '916380691764',
+    supabaseUrl: '',
+    supabaseAnonKey: ''
+  });
+
+  const fetchAppConfig = async () => {
+    try {
+      const res = await fetch('/api/config');
+      if (res.ok) {
+        const data = await res.json();
+        setAppConfig(data);
+      }
+    } catch (err) {
+      console.error("Failed to load app config from server:", err);
+    }
+  };
+
   // Fetch salons and reservation logs from fullstack backend
   const fetchSalonsAndBookings = async () => {
     try {
@@ -108,7 +132,8 @@ export default function App() {
       setTimeOfDayGreeting("Good Evening, Beautiful ✦");
     }
 
-    // Load initial listings & sets interval poll to sync queues
+    // Load configurations and listings
+    fetchAppConfig();
     fetchSalonsAndBookings();
     const interval = setInterval(fetchSalonsAndBookings, 8000);
 
@@ -427,6 +452,7 @@ export default function App() {
               }}
               onBookNow={(s) => handleOpenBooking(s)}
               appDarkMode={appDarkMode}
+              googleMapsKey={appConfig.googleMapsKey}
             />
           </section>
 
@@ -674,6 +700,7 @@ export default function App() {
               handleOpenBooking(activeSalon);
             }
           }}
+          googleMapsKey={appConfig.googleMapsKey}
         />
       )}
 
@@ -681,12 +708,14 @@ export default function App() {
       <Footer
         onNavigate={(page) => navigateTo(page as any, '')}
         onOpenQuiz={() => setIsQuizOpen(true)}
+        onOpenPartners={() => setIsAdminPortalOpen(true)}
       />
 
       {/* 5. MODALS & SLIDE DRAWERS OVERLAYS */}
       <StyleQuiz
         isOpen={isQuizOpen}
         onClose={() => setIsQuizOpen(false)}
+        salons={salons}
         onSelectSalonToBook={(id) => {
           const matchedSalon = salons.find((s) => s.id === id);
           if (matchedSalon) {
@@ -713,6 +742,9 @@ export default function App() {
           setBookingsRefreshToggle((prev) => prev + 1);
         }}
         initialService={bookingService}
+        emailjsServiceId={appConfig.emailjsServiceId}
+        emailjsTemplateId={appConfig.emailjsTemplateId}
+        emailjsPublicKey={appConfig.emailjsPublicKey}
       />
 
       {/* 6. REAL-TIME AI CONCIERGE CHATBOT */}
@@ -732,6 +764,8 @@ export default function App() {
         bookings={bookings}
         onRefreshData={fetchSalonsAndBookings}
         appDarkMode={appDarkMode}
+        whatsappNumber={appConfig.whatsappNumber}
+        tallyFormId={appConfig.tallyFormId}
       />
 
     </div>

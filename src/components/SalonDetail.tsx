@@ -7,9 +7,10 @@ interface SalonDetailProps {
   onBack: () => void;
   onBookService: (service: Service) => void;
   onBookAny: () => void;
+  googleMapsKey?: string;
 }
 
-export default function SalonDetail({ salon, onBack, onBookService, onBookAny }: SalonDetailProps) {
+export default function SalonDetail({ salon, onBack, onBookService, onBookAny, googleMapsKey = '' }: SalonDetailProps) {
   const [activeImageIndex, setActiveImageIndex] = useState(0);
 
   if (!salon) return null;
@@ -29,7 +30,7 @@ export default function SalonDetail({ salon, onBack, onBookService, onBookAny }:
       {/* Parallax Hero Image Container */}
       <div className="relative w-full h-[45vh] md:h-[55vh] overflow-hidden">
         <img
-          src={salon.images[activeImageIndex] || salon.images[0]}
+          src={(salon.images || [])[activeImageIndex] || (salon.images || [])[0] || "https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&q=80&w=800"}
           alt={salon.name}
           className="w-full h-full object-cover transform scale-105 transition-transform duration-500"
           referrerPolicy="no-referrer"
@@ -89,7 +90,7 @@ export default function SalonDetail({ salon, onBack, onBookService, onBookAny }:
               {salon.description}
             </p>
             <div className="flex flex-wrap gap-2 pt-2">
-              {salon.specialties.map((spec, i) => (
+              {(salon.specialties || []).map((spec, i) => (
                 <span
                   key={i}
                   className="px-3 py-1 bg-[#FAF6F0] dark:bg-[#161625] border border-[#D4AF37]/45 dark:border-indigo-950/35 rounded-xl text-xs text-[#805C06] dark:text-amber-350"
@@ -104,7 +105,7 @@ export default function SalonDetail({ salon, onBack, onBookService, onBookAny }:
           <div className="space-y-3">
             <h4 className="font-serif italic text-lg text-[#1E1A17] dark:text-[#FCFAF7] font-semibold">Lounge Ambiance Galleries</h4>
             <div className="grid grid-cols-3 sm:grid-cols-4 gap-2.5">
-              {salon.images.map((img, idx) => (
+              {(salon.images || []).map((img, idx) => (
                 <button
                   key={idx}
                   onClick={() => setActiveImageIndex(idx)}
@@ -236,32 +237,50 @@ export default function SalonDetail({ salon, onBack, onBookService, onBookAny }:
               </button>
             </div>
 
-            {/* Custom styled map placeholder graphic */}
-            <div className="relative aspect-[4/3] rounded-xl overflow-hidden border border-[#E1DBCE] dark:border-indigo-950/60 bg-[#FAF6F0] dark:bg-[#161625] flex flex-col justify-between p-4">
-              {/* Map grid lines simulation using SVG */}
-              <div className="absolute inset-0 opacity-20 pointer-events-none">
-                <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-                  <defs>
-                    <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
-                      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#A07D1A" strokeWidth="0.5"/>
-                    </pattern>
-                  </defs>
-                  <rect width="100%" height="100%" fill="url(#grid)" />
-                </svg>
+            {/* Custom styled map or live Google Maps Embed */}
+            {googleMapsKey ? (
+              <div className="relative aspect-[4/3] rounded-xl overflow-hidden border border-[#E1DBCE] dark:border-indigo-950/60 shadow-xs">
+                <iframe
+                  width="100%"
+                  height="100%"
+                  style={{ border: 0 }}
+                  loading="lazy"
+                  allowFullScreen
+                  referrerPolicy="no-referrer"
+                  src={`https://www.google.com/maps/embed/v1/search?key=${googleMapsKey}&q=${encodeURIComponent(
+                    `${salon.name}, ${salon.area}, Bengaluru`
+                  )}&zoom=15`}
+                  title={`${salon.name} Venue Map`}
+                  className="absolute inset-0 w-full h-full"
+                />
               </div>
-
-              {/* Glowing location ring */}
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 text-center space-y-1">
-                <div className="w-8 h-8 rounded-full bg-[rgba(160,125,26,0.1)] border border-[#A07D1A] dark:border-amber-500 flex items-center justify-center mx-auto animate-pulse">
-                  <MapPin className="w-4 h-4 text-[#A07D1A] dark:text-amber-500 fill-[#A07D1A] dark:fill-amber-500" />
+            ) : (
+              <div className="relative aspect-[4/3] rounded-xl overflow-hidden border border-[#E1DBCE] dark:border-indigo-950/60 bg-[#FAF6F0] dark:bg-[#161625] flex flex-col justify-between p-4">
+                {/* Map grid lines simulation using SVG */}
+                <div className="absolute inset-0 opacity-20 pointer-events-none">
+                  <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                      <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+                        <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#A07D1A" strokeWidth="0.5"/>
+                      </pattern>
+                    </defs>
+                    <rect width="100%" height="100%" fill="url(#grid)" />
+                  </svg>
                 </div>
-                <p className="text-[10px] font-bold text-slate-800 dark:text-slate-100 tracking-widest uppercase truncate">{salon.area}</p>
-              </div>
 
-              {/* Map decorations */}
-              <div className="text-[8px] text-[#A07D1A]/50 font-mono tracking-wider text-left">MAP VIEW • BENGALURU GPS</div>
-              <div className="text-[8.5px] text-[#A07D1A] dark:text-amber-500 font-mono tracking-widest text-right">SECURE PIN POINTED</div>
-            </div>
+                {/* Glowing location ring */}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 text-center space-y-1">
+                  <div className="w-8 h-8 rounded-full bg-[rgba(160,125,26,0.1)] border border-[#A07D1A] dark:border-amber-500 flex items-center justify-center mx-auto animate-pulse">
+                    <MapPin className="w-4 h-4 text-[#A07D1A] dark:text-amber-500 fill-[#A07D1A] dark:fill-amber-500" />
+                  </div>
+                  <p className="text-[10px] font-bold text-slate-800 dark:text-slate-100 tracking-widest uppercase truncate">{salon.area}</p>
+                </div>
+
+                {/* Map decorations */}
+                <div className="text-[8px] text-[#A07D1A]/50 font-mono tracking-wider text-left">MAP VIEW • BENGALURU GPS</div>
+                <div className="text-[8.5px] text-[#A07D1A] dark:text-amber-500 font-mono tracking-widest text-right">SECURE PIN POINTED</div>
+              </div>
+            )}
           </div>
 
         </div>

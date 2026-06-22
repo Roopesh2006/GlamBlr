@@ -7,9 +7,20 @@ interface BookingModalProps {
   isOpen: boolean;
   onClose: () => void;
   initialService?: Service;
+  emailjsServiceId?: string;
+  emailjsTemplateId?: string;
+  emailjsPublicKey?: string;
 }
 
-export default function BookingModal({ salon, isOpen, onClose, initialService }: BookingModalProps) {
+export default function BookingModal({
+  salon,
+  isOpen,
+  onClose,
+  initialService,
+  emailjsServiceId = '',
+  emailjsTemplateId = '',
+  emailjsPublicKey = ''
+}: BookingModalProps) {
   const [step, setStep] = useState(1);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [selectedDate, setSelectedDate] = useState<string>('');
@@ -101,6 +112,37 @@ export default function BookingModal({ salon, isOpen, onClose, initialService }:
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newBooking)
       }).catch(err => console.error("Database sync delay", err));
+
+      // Dispatch real confirmation email via EmailJS
+      if (emailjsServiceId && emailjsTemplateId && emailjsPublicKey) {
+        fetch('https://api.emailjs.com/api/v1.0/email/send', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            service_id: emailjsServiceId,
+            template_id: emailjsTemplateId,
+            user_id: emailjsPublicKey,
+            template_params: {
+              to_name: customerName,
+              salon_name: salon.name,
+              service_name: selectedService?.name,
+              service_price: `₹${selectedService?.price.toLocaleString('en-IN')}`,
+              booking_date: selectedDate,
+              booking_time: selectedTime,
+              booking_id: newBookingId,
+              customer_phone: customerPhone
+            }
+          })
+        })
+        .then(res => {
+          if (res.ok) {
+            console.log("[EmailJS Sync] Booking confirmation email dispatched successfully.");
+          } else {
+            console.warn("[EmailJS Alert] API rejected send. Check credentials.");
+          }
+        })
+        .catch(err => console.error("[EmailJS Error] Failed to send email:", err));
+      }
       
     } catch (err) {
       console.error('Failed to preserve booking locally', err);

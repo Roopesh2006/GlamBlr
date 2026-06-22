@@ -4,9 +4,10 @@ import { Sparkles, MapPin, ShieldCheck, Mail, Phone, Flame } from 'lucide-react'
 interface FooterProps {
   onNavigate: (page: string) => void;
   onOpenQuiz: () => void;
+  onOpenPartners?: () => void;
 }
 
-export default function Footer({ onNavigate, onOpenQuiz }: FooterProps) {
+export default function Footer({ onNavigate, onOpenQuiz, onOpenPartners }: FooterProps) {
   return (
     <footer id="glamblr_footer" className="relative bg-[#FAF6F0] dark:bg-[#0E0E15] border-t border-[#E1DBCE] dark:border-indigo-950/60 z-10 pt-16 pb-12 px-6 overflow-hidden">
       
@@ -66,9 +67,15 @@ export default function Footer({ onNavigate, onOpenQuiz }: FooterProps) {
               </button>
             </li>
             <li>
-              <a href="#" className="hover:text-[#A07D1A] dark:hover:text-amber-400 transition-colors">
+              <button 
+                onClick={(e) => {
+                  e.preventDefault();
+                  if (onOpenPartners) onOpenPartners();
+                }} 
+                className="hover:text-[#A07D1A] dark:hover:text-amber-400 transition-colors"
+              >
                 Partner Registration
-              </a>
+              </button>
             </li>
           </ul>
         </div>

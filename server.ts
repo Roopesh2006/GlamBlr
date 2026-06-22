@@ -1,4 +1,6 @@
+import "dotenv/config";
 import { GoogleGenAI } from "@google/genai";
+import { createClient } from "@supabase/supabase-js";
 import express from "express";
 import fs from "fs";
 import path from "path";
@@ -8,6 +10,35 @@ const app = express();
 const PORT = 3000;
 
 app.use(express.json());
+
+// Initialize Supabase Client
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+
+let supabase: any = null;
+if (supabaseUrl && supabaseServiceKey) {
+  try {
+    supabase = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: {
+        persistSession: false
+      }
+    });
+    console.log("[Supabase Info] Client initialized with Service Role Key.");
+  } catch (err) {
+    console.error("[Supabase Error] Failed to initialize client:", err);
+  }
+} else if (supabaseUrl && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+  try {
+    supabase = createClient(supabaseUrl, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY, {
+      auth: {
+        persistSession: false
+      }
+    });
+    console.log("[Supabase Info] Client initialized with Anon Key.");
+  } catch (err) {
+    console.error("[Supabase Error] Failed to initialize client with Anon:", err);
+  }
+}
 
 // Path to file-backed lightweight database
 const DB_PATH = path.join(process.cwd(), "db.json");
@@ -190,17 +221,75 @@ const saveDB = (data: any) => {
 loadDB();
 
 // -------------------------------------------------------------
-// API ENDPOINTS
+// API ENDPOINTS & SUPABASE SYNC LOGIC
 // -------------------------------------------------------------
 
-// Active list of Salons
-app.get("/api/salons", (req, res) => {
+// Global config access for the React Client
+app.get("/api/config", (req, res) => {
+  res.json({
+    googleMapsKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY || "",
+    emailjsServiceId: process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID || "",
+    emailjsTemplateId: process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID || "",
+    emailjsPublicKey: process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY || "",
+    tallyFormId: process.env.NEXT_PUBLIC_TALLY_FORM_ID || "",
+    whatsappNumber: process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "916380691764",
+    supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL || "",
+    supabaseAnonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
+  });
+});
+
+// Supabase Connection Status and Schema Builder Assistant endpoint
+app.get("/api/supabase-status", async (req, res) => {
+  if (!supabase) {
+    return res.json({
+      connected: false,
+      reason: "No Supabase credentials detected in .env"
+    });
+  }
+
+  try {
+    const { error: salonsError } = await supabase.from("salons").select("id").limit(1);
+    const { error: bookingsError } = await supabase.from("bookings").select("id").limit(1);
+
+    res.json({
+      connected: true,
+      salonsTableOk: !salonsError || salonsError.code !== "PGRST116" && salonsError.message.indexOf("does not exist") === -1,
+      bookingsTableOk: !bookingsError || bookingsError.code !== "PGRST116" && bookingsError.message.indexOf("does not exist") === -1,
+      salonsError: salonsError ? salonsError.message : null,
+      bookingsError: bookingsError ? bookingsError.message : null
+    });
+  } catch (err: any) {
+    res.json({
+      connected: false,
+      reason: err.message || "Failed to query Supabase metadata"
+    });
+  }
+});
+
+// Active list of Salons (with background Supabase fetch fallback)
+app.get("/api/salons", async (req, res) => {
   const db = loadDB();
+
+  // Try fetching from Supabase to stay dynamically synced
+  if (supabase) {
+    try {
+      const { data, error } = await supabase.from("salons").select("*");
+      if (!error && data && data.length > 0) {
+        // Update local memory
+        db.salons = data;
+        saveDB(db);
+        return res.json(data);
+      }
+    } catch (e) {
+      console.warn("[Supabase Read Alert] Fallback to local salons database mapping.");
+    }
+  }
+
   res.json(db.salons);
 });
 
 // Admin adds a salon
-app.post("/api/salons", (req, res) => {
+app.post("/api/salons", async (req, res) => {
   const { name, area, priceRange, description, openHours, specialties, services, images } = req.body;
   
   if (!name || !area) {
@@ -228,28 +317,70 @@ app.post("/api/salons", (req, res) => {
 
   db.salons.push(newSalon);
   saveDB(db);
+
+  // Sync to Supabase cloud if active
+  if (supabase) {
+    try {
+      const { error } = await supabase.from("salons").upsert(newSalon);
+      if (error) {
+        console.warn("[Supabase Sync Warning] Salons upsert failed. Ensure 'salons' table is setup on Supabase.", error.message);
+      } else {
+        console.log("[Supabase Sync] Salon upsert complete on Cloud DB:", newSalon.name);
+      }
+    } catch (err: any) {
+      console.error("[Supabase Sync Error]", err.message);
+    }
+  }
+
   res.json({ success: true, salon: newSalon });
 });
 
 // Admin deletes a salon
-app.delete("/api/salons/:id", (req, res) => {
+app.delete("/api/salons/:id", async (req, res) => {
   const { id } = req.params;
   const db = loadDB();
   db.salons = db.salons.filter((s: any) => s.id !== id);
   db.bookings = db.bookings.filter((b: any) => b.salonId !== id); // cascading clear bookings
   saveDB(db);
+
+  // Sync delete to Supabase
+  if (supabase) {
+    try {
+      await supabase.from("salons").delete().eq("id", id);
+      await supabase.from("bookings").delete().eq("salonId", id);
+      console.log("[Supabase Sync] Cascade deletes complete for salon:", id);
+    } catch (err) {
+      console.error("[Supabase Delete Sync Error]", err);
+    }
+  }
+
   res.json({ success: true });
 });
 
 // Active Bookings list
-app.get("/api/bookings", (req, res) => {
+app.get("/api/bookings", async (req, res) => {
   const db = loadDB();
+
+  // Try reading from Supabase
+  if (supabase) {
+    try {
+      const { data, error } = await supabase.from("bookings").select("*").order("id", { ascending: false });
+      if (!error && data) {
+        db.bookings = data;
+        saveDB(db);
+        return res.json(data);
+      }
+    } catch (e) {
+      console.warn("[Supabase Bookings Alert] Fallback to local booking listings mapping.");
+    }
+  }
+
   res.json(db.bookings);
 });
 
 // Client makes a booking
-app.post("/api/bookings", (req, res) => {
-  const { salonId, salonName, service, date, time, customerName, customerPhone } = req.body;
+app.post("/api/bookings", async (req, res) => {
+  const { signupMode, id, salonId, salonName, service, date, time, customerName, customerPhone } = req.body;
 
   if (!salonId || !service || !date || !time || !customerName || !customerPhone) {
     return res.status(400).json({ error: "Booking missing required parameters" });
@@ -257,7 +388,7 @@ app.post("/api/bookings", (req, res) => {
 
   const db = loadDB();
   const newBooking = {
-    id: String(Date.now()) + Math.floor(Math.random() * 100),
+    id: id || (String(Date.now()) + Math.floor(Math.random() * 100)),
     salonId,
     salonName,
     service,
@@ -268,13 +399,28 @@ app.post("/api/bookings", (req, res) => {
     status: "confirmed"
   };
 
-  db.bookings.push(newBooking);
+  db.bookings.unshift(newBooking);
   saveDB(db);
+
+  // Sync booking insert to Supabase Cloud Database
+  if (supabase) {
+    try {
+      const { error } = await supabase.from("bookings").insert(newBooking);
+      if (error) {
+        console.warn("[Supabase Sync Bookings Warning] Ensure 'bookings' table exists on Supabase with appropriate structure.", error.message);
+      } else {
+        console.log("[Supabase Sync Bookings] Client booking synchronised on Cloud:", newBooking.id);
+      }
+    } catch (err: any) {
+      console.error("[Supabase Sync Bookings Error]", err.message);
+    }
+  }
+
   res.json({ success: true, booking: newBooking });
 });
 
 // Update Booking Status (Cancel, reschedule or change)
-app.put("/api/bookings/:id", (req, res) => {
+app.put("/api/bookings/:id", async (req, res) => {
   const { id } = req.params;
   const { status } = req.body;
   const db = loadDB();
@@ -286,17 +432,44 @@ app.put("/api/bookings/:id", (req, res) => {
 
   booking.status = status || booking.status;
   saveDB(db);
+
+  // Sync to Supabase
+  if (supabase) {
+    try {
+      const { error } = await supabase.from("bookings").update({ status: booking.status }).eq("id", id);
+      if (error) {
+        console.warn("[Supabase Sync Booking Update Alert]", error.message);
+      } else {
+        console.log("[Supabase Sync] Updated booking status on Cloud Database:", id);
+      }
+    } catch (err) {
+      console.error("[Supabase Status Sync Error]", err);
+    }
+  }
+
   res.json({ success: true, booking });
 });
 
 // Delete Booking
-app.delete("/api/bookings/:id", (req, res) => {
+app.delete("/api/bookings/:id", async (req, res) => {
   const { id } = req.params;
   const db = loadDB();
   db.bookings = db.bookings.filter((b: any) => b.id !== id);
   saveDB(db);
+
+  // Sync delete to Supabase
+  if (supabase) {
+    try {
+      await supabase.from("bookings").delete().eq("id", id);
+      console.log("[Supabase Sync Bookings Delete] Complete on Cloud DB:", id);
+    } catch (err) {
+      console.error("[Supabase Booking Delete Sync Error]", err);
+    }
+  }
+
   res.json({ success: true });
 });
+
 
 // -------------------------------------------------------------
 // CHATBOT WITH GEMINI

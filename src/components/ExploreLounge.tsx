@@ -153,9 +153,17 @@ export default function ExploreLounge({
     } else if (sort === 'reviews') {
       items.sort((a, b) => b.reviewCount - a.reviewCount);
     } else if (sort === 'price-low') {
-      items.sort((a, b) => a.services[0].price - b.services[0].price);
+      items.sort((a, b) => {
+        const priceA = a.services?.[0]?.price ?? 0;
+        const priceB = b.services?.[0]?.price ?? 0;
+        return priceA - priceB;
+      });
     } else if (sort === 'price-high') {
-      items.sort((a, b) => b.services[0].price - a.services[0].price);
+      items.sort((a, b) => {
+        const priceA = a.services?.[0]?.price ?? 0;
+        const priceB = b.services?.[0]?.price ?? 0;
+        return priceB - priceA;
+      });
     }
 
     return items;

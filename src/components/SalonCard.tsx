@@ -11,7 +11,7 @@ interface SalonCardProps {
 
 export default function SalonCard({ salon, onSelect, onBookNow }: SalonCardProps) {
   // Get unique categories for pills or top 3 services
-  const topServices = salon.services.slice(0, 3);
+  const topServices = (salon.services || []).slice(0, 3);
 
   return (
     <div
@@ -29,7 +29,7 @@ export default function SalonCard({ salon, onSelect, onBookNow }: SalonCardProps
         )}
 
         <img
-          src={salon.images[0]}
+          src={salon.images?.[0] || "https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&q=80&w=800"}
           alt={salon.name}
           loading="lazy"
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
@@ -40,7 +40,7 @@ export default function SalonCard({ salon, onSelect, onBookNow }: SalonCardProps
         
         {/* Geographic Area Badge */}
         <div className="absolute bottom-3 right-3 flex items-center gap-1 px-2.5 py-0.5 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border border-[#E1DBCE] dark:border-indigo-950/50 rounded-full text-[#A07D1A] dark:text-amber-400 font-mono text-[9px] font-bold tracking-wider shadow-2xs">
-          <MapPin className="w-3 h-3 text-[#A07D1A] dark:text-amber-500" /> {salon.area}
+          <MapPin className="w-3 h-3 text-[#A07D1A] dark:text-amber-500" /> {salon.area || "Bengaluru"}
         </div>
       </div>
 
