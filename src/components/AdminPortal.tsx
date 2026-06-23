@@ -41,6 +41,34 @@ export default function AdminPortal({
   const [isOwnerAuthenticated, setIsOwnerAuthenticated] = useState(false);
   const [ownerSalon, setOwnerSalon] = useState<Salon | null>(null);
 
+  // Dynamic credentials from database state
+  const [credentials, setCredentials] = useState<Record<string, string>>({});
+
+  // Dynamic admin lists (Style DNA quiz submissions and active testimonials)
+  const [quizResultsList, setQuizResultsList] = useState<any[]>([]);
+  const [testimonialsList, setTestimonialsList] = useState<any[]>([]);
+
+  // Shop Profile Editing parameters
+  const [editOpenHours, setEditOpenHours] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [editSpecs, setEditSpecs] = useState('');
+  const [editOfferTitle, setEditOfferTitle] = useState('');
+  const [editOfferDesc, setEditOfferDesc] = useState('');
+  const [editOfferCode, setEditOfferCode] = useState('');
+
+  // Add Service Form parameters
+  const [newSvcName, setNewSvcName] = useState('');
+  const [newSvcPrice, setNewSvcPrice] = useState('');
+  const [newSvcDuration, setNewSvcDuration] = useState('60 mins');
+  const [newSvcCategory, setNewSvcCategory] = useState('Hair');
+
+  // Testimonial creation form states
+  const [newTestimonialName, setNewTestimonialName] = useState('');
+  const [newTestimonialRole, setNewTestimonialRole] = useState('');
+  const [newTestimonialQuote, setNewTestimonialQuote] = useState('');
+  const [newTestimonialRating, setNewTestimonialRating] = useState('5');
+  const [newTestimonialArea, setNewTestimonialArea] = useState('Indiranagar');
+
   // Admin Login states
   const [adminUsername, setAdminUsername] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
@@ -48,6 +76,35 @@ export default function AdminPortal({
 
   // Supabase states
   const [supabaseStatus, setSupabaseStatus] = useState<any>(null);
+
+  const fetchCredentials = async () => {
+    try {
+      const res = await fetch('/api/credentials');
+      if (res.ok) {
+        const data = await res.json();
+        setCredentials(data);
+      }
+    } catch (e) {
+      console.error("Failed to fetch shop login credentials:", e);
+    }
+  };
+
+  const fetchAdminData = async () => {
+    try {
+      const resQuiz = await fetch('/api/quiz-results');
+      if (resQuiz.ok) {
+        const dataQuiz = await resQuiz.json();
+        setQuizResultsList(dataQuiz);
+      }
+      const resTestimonials = await fetch('/api/testimonials');
+      if (resTestimonials.ok) {
+        const dataTestimonials = await resTestimonials.json();
+        setTestimonialsList(dataTestimonials);
+      }
+    } catch (e) {
+      console.error("Failed to load platform data submissions:", e);
+    }
+  };
 
   const fetchSupabaseStatus = async () => {
     try {
@@ -93,8 +150,23 @@ export default function AdminPortal({
       setAdminUsername('');
       setAdminPassword('');
       setIsAdminAuthenticated(false);
+
+      fetchCredentials();
+      fetchAdminData();
     }
   }, [isOpen, salons]);
+
+  // Sync profile editors with owner salon choice
+  useEffect(() => {
+    if (ownerSalon) {
+      setEditOpenHours(ownerSalon.openHours || '09:00 AM - 09:00 PM');
+      setEditDescription(ownerSalon.description || '');
+      setEditSpecs((ownerSalon.specialties || []).join(', '));
+      setEditOfferTitle(ownerSalon.offerTitle || '');
+      setEditOfferDesc(ownerSalon.offerDesc || '');
+      setEditOfferCode(ownerSalon.offerCode || '');
+    }
+  }, [ownerSalon]);
 
   // Handle WhatsApp join form redirect redirection to Simulate elegant "Google Form" submission
   const handleJoinSubmitWhatsapp = (e: React.FormEvent) => {
@@ -124,15 +196,95 @@ export default function AdminPortal({
     const salon = salons.find(s => s.id === ownerSelectedSalonId);
     if (!salon) return;
 
-    // Direct password match (simple custom credential logic)
-    const expectedPassword = "shop" + salon.id; 
+    // Check credentials against our dynamic database map
+    const expectedPassword = credentials[salon.id] || "shop" + salon.id; 
     
     if (ownerPassword === "goldowner" || ownerPassword === expectedPassword || ownerPassword === "admin123") {
       setIsOwnerAuthenticated(true);
       setOwnerSalon(salon);
     } else {
-      alert(`Invalid credential code! For development, try: shop${salon.id} or admin123`);
+      alert(`Invalid credential code! Try the PIN set in Secretariat Portal, "shop${salon.id}", or "admin123"`);
     }
+  };
+
+  // Owner updates salon details in database
+  const handleUpdateSalonField = async (updatedFields: Partial<Salon>) => {
+    if (!ownerSalon) return;
+    try {
+      const res = await fetch(`/api/salons/${ownerSalon.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedFields)
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setOwnerSalon(data.salon);
+        onRefreshData(); // Trigger App.tsx reload
+      } else {
+        alert("Failed to synchronize lounge settings.");
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Failed to sync profile changes with database.");
+    }
+  };
+
+  const handleSaveProfile = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!ownerSalon) return;
+    const specsArray = editSpecs.split(',').map(s => s.trim()).filter(Boolean);
+    handleUpdateSalonField({
+      openHours: editOpenHours,
+      description: editDescription,
+      specialties: specsArray
+    });
+    alert("Profile coordinates successfully synced!");
+  };
+
+  const handleSaveOffers = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!ownerSalon) return;
+    handleUpdateSalonField({
+      offerTitle: editOfferTitle,
+      offerDesc: editOfferDesc,
+      offerCode: editOfferCode
+    });
+    alert("Active promotion coordinates successfully synced!");
+  };
+
+  const handleAddService = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!ownerSalon || !newSvcName.trim() || !newSvcPrice) {
+      alert("Please provide Service Name and Pricing coordinates.");
+      return;
+    }
+    const currentServices = [...(ownerSalon.services || [])];
+    const newService = {
+      name: newSvcName.trim(),
+      price: Number(newSvcPrice),
+      duration: newSvcDuration || "60 mins",
+      category: newSvcCategory as any
+    };
+    currentServices.push(newService);
+    
+    handleUpdateSalonField({
+      services: currentServices
+    });
+
+    // Reset fields
+    setNewSvcName('');
+    setNewSvcPrice('');
+    alert(`Service "${newService.name}" appended to menu live!`);
+  };
+
+  const handleDeleteService = (indexToDelete: number) => {
+    if (!ownerSalon) return;
+    if (!confirm("Are you sure you want to remove this service from your live menu?")) return;
+    const updatedServices = (ownerSalon.services || []).filter((_, idx) => idx !== indexToDelete);
+    handleUpdateSalonField({
+      services: updatedServices
+    });
+    alert("Service removed successfully.");
   };
 
   // Authenticate Admin
@@ -232,6 +384,65 @@ export default function AdminPortal({
       }
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  // Admin dynamic quiz and testimonial managers
+  const handleDeleteQuizResult = async (id: string) => {
+    if (!confirm("Are you sure you want to clear this Style DNA audit?")) return;
+    try {
+      const res = await fetch(`/api/quiz-results/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        await fetchAdminData();
+        alert("Style DNA audit record cleared.");
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleDeleteTestimonial = async (id: string) => {
+    if (!confirm("Are you sure you want to remove this client review?")) return;
+    try {
+      const res = await fetch(`/api/testimonials/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        await fetchAdminData();
+        onRefreshData(); // Refreshes App.tsx
+        alert("Client review removed from database.");
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleAddTestimonialSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTestimonialName.trim() || !newTestimonialQuote.trim()) {
+      alert("Please provide author name and testimonial text.");
+      return;
+    }
+    try {
+      const res = await fetch('/api/testimonials', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: newTestimonialName.trim(),
+          role: newTestimonialRole.trim() || "Verified Guest",
+          quote: newTestimonialQuote.trim(),
+          rating: Number(newTestimonialRating),
+          area: newTestimonialArea
+        })
+      });
+      if (res.ok) {
+        setNewTestimonialName('');
+        setNewTestimonialRole('');
+        setNewTestimonialQuote('');
+        await fetchAdminData();
+        onRefreshData(); // reload on parent App.tsx
+        alert("Testimonial posted successfully! Check the Reviews section on the homepage.");
+      }
+    } catch (e) {
+      alert("Failed to save review.");
     }
   };
 
@@ -607,6 +818,225 @@ export default function AdminPortal({
                     </div>
                   </div>
 
+                  {/* Lounge Configuration and Active Campaign Studio */}
+                  <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 pt-4 border-t border-[#E1DBCE]/60 dark:border-indigo-950/30 text-left">
+                    
+                    {/* COL 1 (4/12): PROFILE DETAILS */}
+                    <div className="xl:col-span-4 bg-[#FAF7F2]/50 dark:bg-[#161625]/25 border border-[#E1DBCE] dark:border-indigo-950/45 rounded-xl p-5 space-y-4">
+                      <div>
+                        <h6 className="font-serif italic font-bold text-slate-800 dark:text-white flex items-center gap-1.5 border-b pb-1.5 text-xs">
+                          <Store className="w-4 h-4 text-[#A07D1A]" /> Profile Metadata
+                        </h6>
+                        <p className="text-[10px] text-slate-400 mt-1">Configure live coordinate details, open timings, and specialty tags.</p>
+                      </div>
+
+                      <form onSubmit={handleSaveProfile} className="space-y-3">
+                        <div className="space-y-1">
+                          <label className="text-[9px] font-mono font-bold tracking-wider uppercase text-slate-400">Operating Hours</label>
+                          <input
+                            type="text"
+                            required
+                            value={editOpenHours}
+                            onChange={(e) => setEditOpenHours(e.target.value)}
+                            className="w-full bg-white dark:bg-[#12121E] border border-[#E1DBCE]/85 dark:border-indigo-950 px-3 py-1.5 text-xs rounded-lg focus:outline-none focus:border-[#A07D1A] text-slate-800 dark:text-slate-100"
+                          />
+                        </div>
+
+                        <div className="space-y-1">
+                          <label className="text-[9px] font-mono font-bold tracking-wider uppercase text-slate-400">Specialty Tags (Commas)</label>
+                          <input
+                            type="text"
+                            required
+                            value={editSpecs}
+                            onChange={(e) => setEditSpecs(e.target.value)}
+                            className="w-full bg-white dark:bg-[#12121E] border border-[#E1DBCE]/85 dark:border-indigo-950 px-3 py-1.5 text-xs rounded-lg focus:outline-none focus:border-[#A07D1A] text-slate-800 dark:text-slate-100"
+                          />
+                        </div>
+
+                        <div className="space-y-1">
+                          <label className="text-[9px] font-mono font-bold tracking-wider uppercase text-slate-400">Architectural Description</label>
+                          <textarea
+                            rows={3}
+                            required
+                            value={editDescription}
+                            onChange={(e) => setEditDescription(e.target.value)}
+                            className="w-full bg-white dark:bg-[#12121E] border border-[#E1DBCE]/85 dark:border-indigo-950 px-3 py-1.5 text-xs rounded-lg focus:outline-none focus:border-[#A07D1A] text-slate-800 dark:text-slate-100 leading-relaxed font-sans"
+                          />
+                        </div>
+
+                        <button
+                          type="submit"
+                          className="w-full py-2 bg-[#A07D1A] hover:bg-[#805C06] dark:bg-amber-400 dark:text-slate-950 text-white text-[9.5px] uppercase tracking-widest font-extrabold rounded-lg cursor-pointer transition-all"
+                        >
+                          ✦ Synchronize Profile
+                        </button>
+                      </form>
+                    </div>
+
+                    {/* COL 2 (4/12): ACTIVE PROMOTION CAMPAIGN */}
+                    <div className="xl:col-span-4 bg-[#FAF7F2]/50 dark:bg-[#161625]/25 border border-[#E1DBCE] dark:border-indigo-950/45 rounded-xl p-5 space-y-4">
+                      <div>
+                        <h6 className="font-serif italic font-bold text-slate-800 dark:text-white flex items-center gap-1.5 border-b pb-1.5 text-xs">
+                          <Sparkles className="w-4 h-4 text-amber-500" /> Active Promotions & Offers
+                        </h6>
+                        <p className="text-[10px] text-slate-400 mt-1">Deploy visual highlight banners and coupon codes directly on the marketplace.</p>
+                      </div>
+
+                      <form onSubmit={handleSaveOffers} className="space-y-3">
+                        <div className="space-y-1">
+                          <label className="text-[9px] font-mono font-bold tracking-wider uppercase text-slate-400">Promotion Title</label>
+                          <input
+                            type="text"
+                            value={editOfferTitle}
+                            onChange={(e) => setEditOfferTitle(e.target.value)}
+                            placeholder="e.g. 20% Off Japanese Spa"
+                            className="w-full bg-white dark:bg-[#12121E] border border-[#E1DBCE]/85 dark:border-indigo-950 px-3 py-1.5 text-xs rounded-lg focus:outline-none focus:border-[#A07D1A] text-slate-800 dark:text-slate-100"
+                          />
+                        </div>
+
+                        <div className="space-y-1">
+                          <label className="text-[9px] font-mono font-bold tracking-wider uppercase text-slate-400">Coupon Code</label>
+                          <input
+                            type="text"
+                            value={editOfferCode}
+                            onChange={(e) => setEditOfferCode(e.target.value)}
+                            placeholder="e.g. GLOWSPA20"
+                            className="w-full bg-white dark:bg-[#12121E] border border-[#E1DBCE]/85 dark:border-indigo-950 px-3 py-1.5 text-xs rounded-lg focus:outline-none focus:border-[#A07D1A] text-slate-800 dark:text-slate-100 uppercase font-mono font-bold"
+                          />
+                        </div>
+
+                        <div className="space-y-1">
+                          <label className="text-[9px] font-mono font-bold tracking-wider uppercase text-slate-400">Promotion Terms & Details</label>
+                          <textarea
+                            rows={3}
+                            value={editOfferDesc}
+                            onChange={(e) => setEditOfferDesc(e.target.value)}
+                            placeholder="Describe what services are included or the terms..."
+                            className="w-full bg-white dark:bg-[#12121E] border border-[#E1DBCE]/85 dark:border-indigo-950 px-3 py-1.5 text-xs rounded-lg focus:outline-none focus:border-[#A07D1A] text-slate-800 dark:text-slate-100 leading-relaxed font-sans"
+                          />
+                        </div>
+
+                        <div className="flex gap-2">
+                          <button
+                            type="submit"
+                            className="flex-1 py-2 bg-amber-600 hover:bg-amber-500 text-white text-[9.5px] uppercase tracking-widest font-extrabold rounded-lg cursor-pointer transition-all"
+                          >
+                            ✦ Deploy Offer
+                          </button>
+                          
+                          {(editOfferTitle || editOfferCode) && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditOfferTitle('');
+                                setEditOfferDesc('');
+                                setEditOfferCode('');
+                                handleUpdateSalonField({
+                                  offerTitle: '',
+                                  offerDesc: '',
+                                  offerCode: ''
+                                });
+                                alert("Promotional campaign cleared live.");
+                              }}
+                              className="px-3 py-2 bg-rose-600/10 hover:bg-rose-600/20 text-rose-500 border border-rose-500/20 text-[9.5px] uppercase tracking-wider font-bold rounded-lg cursor-pointer transition-all"
+                            >
+                              Clear
+                            </button>
+                          )}
+                        </div>
+                      </form>
+                    </div>
+
+                    {/* COL 3 (4/12): SERVICES MENU MANAGER */}
+                    <div className="xl:col-span-4 bg-[#FAF7F2]/50 dark:bg-[#161625]/25 border border-[#E1DBCE] dark:border-indigo-950/45 rounded-xl p-5 space-y-4 flex flex-col justify-between">
+                      <div className="space-y-3">
+                        <div>
+                          <h6 className="font-serif italic font-bold text-slate-800 dark:text-white flex items-center gap-1.5 border-b pb-1.5 text-xs">
+                            <Plus className="w-4 h-4 text-emerald-500" /> Services Menu Catalog
+                          </h6>
+                          <p className="text-[10px] text-slate-400 mt-1">Live active treatments, durations, and price points.</p>
+                        </div>
+
+                        {/* SERVICE ITEMS LIST WITH DELETIONS */}
+                        <div className="border border-[#E1DBCE]/60 dark:border-indigo-950/50 rounded-lg overflow-hidden max-h-[140px] overflow-y-auto divide-y divide-[#E1DBCE]/40 dark:divide-indigo-950/25 bg-white dark:bg-[#12121E]">
+                          {(ownerSalon.services || []).map((s, idx) => (
+                            <div key={idx} className="p-2 flex items-center justify-between text-[11px] hover:bg-slate-50 dark:hover:bg-indigo-950/10">
+                              <div>
+                                <div className="font-serif italic font-extrabold text-[#805C06] dark:text-amber-400 leading-tight">{s.name}</div>
+                                <div className="text-[9px] text-slate-400 font-mono mt-0.5">{s.category} • {s.duration}</div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="font-mono font-bold text-slate-900 dark:text-white">₹{s.price}</span>
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteService(idx)}
+                                  className="p-1 text-rose-500 hover:bg-rose-500/10 rounded cursor-pointer"
+                                  title="Remove service"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* ADD SERVICE MINI-FORM */}
+                      <form onSubmit={handleAddService} className="pt-3 border-t border-[#E1DBCE]/40 dark:border-indigo-950/25 space-y-2 text-left">
+                        <span className="text-[9px] font-mono font-black text-[#A07D1A] dark:text-amber-400 uppercase tracking-widest block">✦ Append New Treat</span>
+                        
+                        <div className="grid grid-cols-2 gap-1.5">
+                          <input
+                            type="text"
+                            required
+                            placeholder="Service Name"
+                            value={newSvcName}
+                            onChange={(e) => setNewSvcName(e.target.value)}
+                            className="bg-white dark:bg-[#12121E] border border-[#E1DBCE]/85 dark:border-indigo-950 px-2 py-1 text-xs rounded focus:outline-none"
+                          />
+                          <input
+                            type="number"
+                            required
+                            placeholder="Price (₹)"
+                            value={newSvcPrice}
+                            onChange={(e) => setNewSvcPrice(e.target.value)}
+                            className="bg-white dark:bg-[#12121E] border border-[#E1DBCE]/85 dark:border-indigo-950 px-2 py-1 text-xs rounded focus:outline-none font-mono"
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-1.5">
+                          <input
+                            type="text"
+                            placeholder="Duration (e.g. 60 mins)"
+                            value={newSvcDuration}
+                            onChange={(e) => setNewSvcDuration(e.target.value)}
+                            className="bg-white dark:bg-[#12121E] border border-[#E1DBCE]/85 dark:border-indigo-950 px-2 py-1 text-xs rounded focus:outline-none"
+                          />
+                          <select
+                            value={newSvcCategory}
+                            onChange={(e) => setNewSvcCategory(e.target.value)}
+                            className="bg-white dark:bg-[#12121E] border border-[#E1DBCE]/85 dark:border-indigo-950 px-1 py-1 text-xs rounded focus:outline-none"
+                          >
+                            <option value="Hair">Hair Care</option>
+                            <option value="Skin">Skin/Facials</option>
+                            <option value="Nails">Nail Art</option>
+                            <option value="Spa">Massages/Spa</option>
+                            <option value="Bridal">Bridal Sessions</option>
+                            <option value="Grooming">Executive Grooming</option>
+                          </select>
+                        </div>
+
+                        <button
+                          type="submit"
+                          className="w-full py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-[9px] uppercase tracking-widest font-black rounded cursor-pointer transition-all"
+                        >
+                          ✦ Deploy Menu Service
+                        </button>
+                      </form>
+                    </div>
+
+                  </div>
+
                 </div>
               )}
             </div>
@@ -720,13 +1150,41 @@ export default function AdminPortal({
                                 <td className="p-3 font-mono text-[11px]">{s.area}</td>
                                 <td className="p-3 font-bold">{s.priceRange}</td>
                                 <td className="p-3">
-                                  <button
-                                    onClick={() => handleDeleteSalon(s.id, s.name)}
-                                    className="p-1.5 text-rose-500 hover:bg-rose-500/10 dark:hover:bg-rose-950/30 border border-transparent hover:border-rose-500/20 rounded cursor-pointer hover:scale-105 transition-transform"
-                                    title="Revoke Salon listing"
-                                  >
-                                    <Trash2 className="w-4 h-4" />
-                                  </button>
+                                  <div className="flex items-center gap-1.5">
+                                    <button
+                                      onClick={async () => {
+                                        const currentPin = credentials[s.id] || `shop${s.id}`;
+                                        const pin = prompt(`Define shop login PIN credentials for ${s.name}:`, currentPin);
+                                        if (pin !== null && pin.trim()) {
+                                          try {
+                                            const res = await fetch('/api/credentials', {
+                                              method: 'POST',
+                                              headers: { 'Content-Type': 'application/json' },
+                                              body: JSON.stringify({ salonId: s.id, password: pin.trim() })
+                                            });
+                                            if (res.ok) {
+                                              await fetchCredentials();
+                                              alert(`Login PIN updated dynamically for ${s.name} to: "${pin.trim()}"`);
+                                            }
+                                          } catch (e) {
+                                            alert("Failed to sync PIN with database server.");
+                                          }
+                                        }
+                                      }}
+                                      className="p-1.5 text-[#A07D1A] dark:text-amber-400 hover:bg-amber-500/10 border border-transparent hover:border-amber-500/20 rounded cursor-pointer hover:scale-105 transition-transform"
+                                      title={`Manage Login credentials. Current PIN: ${credentials[s.id] || `shop${s.id}`}`}
+                                    >
+                                      <KeyRound className="w-4 h-4" />
+                                    </button>
+
+                                    <button
+                                      onClick={() => handleDeleteSalon(s.id, s.name)}
+                                      className="p-1.5 text-rose-500 hover:bg-rose-500/10 dark:hover:bg-rose-950/30 border border-transparent hover:border-rose-500/20 rounded cursor-pointer hover:scale-105 transition-transform"
+                                      title="Revoke Salon listing"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </button>
+                                  </div>
                                 </td>
                               </tr>
                             ))}
@@ -940,6 +1398,154 @@ create table bookings (
                         </pre>
                       </div>
                     )}
+                  </div>
+
+                  {/* Dynamic Style DNA audits and Verified Testimonials section */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 text-left">
+                    
+                    {/* LEFT PANEL: STYLE DNA SUBMISSIONS */}
+                    <div className="bg-[#FAF7F2]/50 dark:bg-[#161625]/25 border border-[#E1DBCE] dark:border-indigo-950/45 rounded-xl p-5 space-y-4">
+                      <div>
+                        <h5 className="font-serif italic font-bold text-slate-800 dark:text-white flex items-center gap-1.5 border-b pb-1.5 text-xs">
+                          🧬 Active Style DNA Audits ({quizResultsList.length})
+                        </h5>
+                        <p className="text-[10px] text-slate-400 mt-1">Audit profiles filled dynamically by users after completing the style selector quiz.</p>
+                      </div>
+
+                      <div className="max-h-[220px] overflow-y-auto space-y-2.5">
+                        {quizResultsList.map((q, idx) => (
+                          <div key={q.id || idx} className="bg-white dark:bg-[#12121E] border border-[#E1DBCE]/60 dark:border-indigo-950/50 rounded-lg p-3 text-[11px] relative flex justify-between gap-3">
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-1.5">
+                                <span className="font-bold text-slate-900 dark:text-white font-serif italic">Vibe Match: {q.resultVibe}</span>
+                                <span className="px-1.5 py-0.5 bg-amber-500/10 text-[#A07D1A] dark:text-amber-400 rounded text-[8px] font-mono font-bold uppercase">{q.timestamp ? new Date(q.timestamp).toLocaleDateString() : 'Guest'}</span>
+                              </div>
+                              <p className="text-slate-600 dark:text-slate-300 font-sans leading-relaxed">
+                                {q.name || "Anonymous Style Icon"} matched {q.matchedSalons?.length || 0} salons.
+                              </p>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteQuizResult(q.id)}
+                              className="p-1.5 text-rose-500 hover:bg-rose-500/10 rounded self-start cursor-pointer transition-colors"
+                              title="Clear Style DNA file"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ))}
+
+                        {quizResultsList.length === 0 && (
+                          <div className="p-8 text-center text-slate-400 font-mono text-xs border border-dashed border-[#E1DBCE]/65 dark:border-indigo-950 rounded-lg">
+                            No active Style DNA results saved yet in database.
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* RIGHT PANEL: TESTIMONIALS & REVIEWS MANAGER */}
+                    <div className="bg-[#FAF7F2]/50 dark:bg-[#161625]/25 border border-[#E1DBCE] dark:border-indigo-950/45 rounded-xl p-5 space-y-4">
+                      <div>
+                        <h5 className="font-serif italic font-bold text-slate-800 dark:text-white flex items-center gap-1.5 border-b pb-1.5 text-xs">
+                          💬 Verified Testimonial Reviews ({testimonialsList.length})
+                        </h5>
+                        <p className="text-[10px] text-slate-400 mt-1">Manage and deploy customer feedback quotes directly onto the live web layout.</p>
+                      </div>
+
+                      {/* Manual testimonial adder form */}
+                      <form onSubmit={handleAddTestimonialSubmit} className="bg-white dark:bg-[#12121E] border border-[#E1DBCE]/60 dark:border-indigo-950/50 p-3 rounded-lg space-y-2 text-left">
+                        <span className="text-[9px] font-mono font-black text-amber-500 dark:text-amber-400 uppercase tracking-widest block">✦ Write & Deploy Customer Review</span>
+                        
+                        <div className="grid grid-cols-2 gap-1.5">
+                          <input
+                            type="text"
+                            required
+                            placeholder="Customer Name"
+                            value={newTestimonialName}
+                            onChange={(e) => setNewTestimonialName(e.target.value)}
+                            className="bg-slate-50 dark:bg-black/25 border border-[#E1DBCE]/85 dark:border-indigo-950 px-2 py-1 text-xs rounded focus:outline-none"
+                          />
+                          <input
+                            type="text"
+                            placeholder="Designation / Role"
+                            value={newTestimonialRole}
+                            onChange={(e) => setNewTestimonialRole(e.target.value)}
+                            className="bg-slate-50 dark:bg-black/25 border border-[#E1DBCE]/85 dark:border-indigo-950 px-2 py-1 text-xs rounded focus:outline-none"
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-1.5">
+                          <select
+                            value={newTestimonialRating}
+                            onChange={(e) => setNewTestimonialRating(e.target.value)}
+                            className="bg-slate-50 dark:bg-black/25 border border-[#E1DBCE]/85 dark:border-indigo-950 px-1 py-1 text-xs rounded focus:outline-none"
+                          >
+                            <option value="5">★★★★★ (5 Stars)</option>
+                            <option value="4">★★★★☆ (4 Stars)</option>
+                            <option value="3">★★★☆☆ (3 Stars)</option>
+                          </select>
+                          <select
+                            value={newTestimonialArea}
+                            onChange={(e) => setNewTestimonialArea(e.target.value)}
+                            className="bg-slate-50 dark:bg-black/25 border border-[#E1DBCE]/85 dark:border-indigo-950 px-1 py-1 text-xs rounded focus:outline-none"
+                          >
+                            <option value="Indiranagar">Indiranagar</option>
+                            <option value="Koramangala">Koramangala</option>
+                            <option value="Whitefield">Whitefield</option>
+                            <option value="Jayanagar">Jayanagar</option>
+                            <option value="HSR Layout">HSR Layout</option>
+                            <option value="Banaswadi">Banaswadi</option>
+                          </select>
+                        </div>
+
+                        <textarea
+                          rows={2}
+                          required
+                          placeholder="Quote / Experience Review text..."
+                          value={newTestimonialQuote}
+                          onChange={(e) => setNewTestimonialQuote(e.target.value)}
+                          className="w-full bg-slate-50 dark:bg-black/25 border border-[#E1DBCE]/85 dark:border-indigo-950 px-2 py-1 text-xs rounded focus:outline-none font-sans leading-relaxed"
+                        />
+
+                        <button
+                          type="submit"
+                          className="w-full py-1 bg-[#A07D1A] hover:bg-[#805C06] dark:bg-amber-400 dark:text-slate-950 text-white text-[9px] uppercase tracking-widest font-black rounded cursor-pointer transition-all"
+                        >
+                          ✦ Deploy Customer Review
+                        </button>
+                      </form>
+
+                      {/* Dynamic list */}
+                      <div className="max-h-[160px] overflow-y-auto space-y-2">
+                        {testimonialsList.map((t, idx) => (
+                          <div key={t.id || idx} className="bg-white dark:bg-[#12121E] border border-[#E1DBCE]/60 dark:border-indigo-950/50 rounded-lg p-2.5 text-[11px] flex justify-between gap-3">
+                            <div>
+                              <div className="flex items-center gap-1">
+                                <span className="font-extrabold text-slate-800 dark:text-slate-100">{t.name}</span>
+                                <span className="text-slate-400 font-normal">({t.role || 'Verified'})</span>
+                                <span className="text-amber-500 text-[10px]">{"★".repeat(t.rating || 5)}</span>
+                              </div>
+                              <p className="text-slate-500 italic mt-0.5 leading-normal">"{t.quote}"</p>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteTestimonial(t.id)}
+                              className="p-1 text-rose-500 hover:bg-rose-500/10 rounded cursor-pointer self-center"
+                              title="Delete Testimonial"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        ))}
+
+                        {testimonialsList.length === 0 && (
+                          <div className="p-4 text-center text-slate-400 font-mono text-[10px]">
+                            No custom testimonials loaded in database. Falling back to default mock list.
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
                   </div>
 
                 </div>

@@ -112,6 +112,25 @@ export default function StyleQuiz({ isOpen, onClose, onSelectSalonToBook, salons
       .sort((a, b) => b.matchPercentage - a.matchPercentage)
       .slice(0, 3);
 
+    // Save style DNA results dynamically to database
+    try {
+      fetch('/api/quiz-results', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title,
+          description,
+          vibe,
+          concern,
+          budget,
+          area,
+          matchedSalons: topMatches.map(m => ({ id: m.salon.id, name: m.salon.name, match: m.matchPercentage }))
+        })
+      }).catch(err => console.warn("Style DNA server sync delay:", err));
+    } catch (e) {
+      console.warn("Quiz results save bypassed:", e);
+    }
+
     setProfileResult({
       title,
       description,

@@ -38,12 +38,12 @@ export default function Navbar({
   return (
     <nav
       id="glamblr_navbar"
-      className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${
+      className={`fixed top-0 left-0 right-0 z-40 transition-all duration-500 ${
         isScrolled
           ? appDarkMode
-            ? 'bg-[#0E0E15]/95 backdrop-blur-md border-b border-indigo-950/60 py-3.5 shadow-md'
-            : 'bg-[#FBF9F4]/90 backdrop-blur-md border-b border-[rgba(160,125,26,0.15)] py-3.5 shadow-sm'
-          : 'bg-slate-950/45 backdrop-blur-md border-b border-white/5 py-4 hover:bg-slate-950/65'
+            ? 'bg-[#08080E]/85 backdrop-blur-xl border-b border-white/5 py-3 shadow-[0_10px_35px_rgba(0,0,0,0.4)]'
+            : 'bg-[#FAF8F4]/85 backdrop-blur-xl border-b border-black/5 py-3 shadow-[0_10px_35px_rgba(0,0,0,0.02)]'
+          : 'bg-transparent py-5'
       }`}
     >
       <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">

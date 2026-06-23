@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Sparkles, Compass, MapPin, Smile, Flame, Play, ArrowRight, Heart, Award, CalendarCheck, HelpCircle, Star, Quote, RefreshCw } from 'lucide-react';
+import { Sparkles, Compass, MapPin, Smile, Flame, Play, ArrowRight, Heart, Award, CalendarCheck, HelpCircle, Star, Quote, RefreshCw, ChevronUp, ChevronLeft, ChevronRight } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import Lenis from 'lenis';
 
 // Core imports
 import { Salon, Service, Booking } from './types';
@@ -27,9 +29,97 @@ export default function App() {
   const [currentPage, setCurrentPage] = useState<'home' | 'explore' | 'salon-detail'>('home');
   const [selectedSalonId, setSelectedSalonId] = useState<string | null>(null);
 
+  // Noomo Custom Interactive Spring Cursor
+  const [mousePos, setMousePos] = useState({ x: -100, y: -100 });
+  const [cursorHovered, setCursorHovered] = useState(false);
+  const [cursorText, setCursorText] = useState("");
+  const [isCursorVisible, setIsCursorVisible] = useState(false);
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      setMousePos({ x: e.clientX, y: e.clientY });
+      if (!isCursorVisible) setIsCursorVisible(true);
+    };
+
+    const handleMouseLeave = () => {
+      setIsCursorVisible(false);
+    };
+
+    const handleMouseEnter = () => {
+      setIsCursorVisible(true);
+    };
+
+    const handleMouseOver = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target) return;
+      const isHoverable = target.closest('button, a, select, input, [role="button"], .group, .cursor-pointer, .noomo-magnetic, [data-cursor-text]');
+      if (isHoverable) {
+        setCursorHovered(true);
+        const text = isHoverable.getAttribute('data-cursor-text') || "";
+        setCursorText(text);
+      } else {
+        setCursorHovered(false);
+        setCursorText("");
+      }
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseleave', handleMouseLeave);
+    document.addEventListener('mouseenter', handleMouseEnter);
+    window.addEventListener('mouseover', handleMouseOver);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseleave', handleMouseLeave);
+      document.removeEventListener('mouseenter', handleMouseEnter);
+      window.removeEventListener('mouseover', handleMouseOver);
+    };
+  }, [isCursorVisible]);
+
+  // Initialize Lenis Smooth Scroll
+  useEffect(() => {
+    const lenis = new Lenis({
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // premium cubic inertia easing
+      orientation: 'vertical',
+      gestureOrientation: 'vertical',
+      smoothWheel: true,
+      wheelMultiplier: 1.1,
+      touchMultiplier: 2,
+    });
+
+    // Append Lenis active class
+    document.documentElement.classList.add('lenis', 'lenis-smooth');
+
+    let rafId: number;
+    function raf(time: number) {
+      lenis.raf(time);
+      rafId = requestAnimationFrame(raf);
+    }
+
+    rafId = requestAnimationFrame(raf);
+    (window as any).lenisInstance = lenis;
+
+    return () => {
+      lenis.destroy();
+      document.documentElement.classList.remove('lenis', 'lenis-smooth');
+      cancelAnimationFrame(rafId);
+    };
+  }, []);
+
+  // Scroll to top on page transition or salon select
+  useEffect(() => {
+    const lenis = (window as any).lenisInstance;
+    if (lenis) {
+      lenis.scrollTo(0, { immediate: true });
+    } else {
+      window.scrollTo(0, 0);
+    }
+  }, [currentPage, selectedSalonId]);
+
   // Real-time server-synced parameters
   const [salons, setSalons] = useState<Salon[]>(LUX_SALONS);
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [testimonials, setTestimonials] = useState<any[]>([]);
   const [isAdminPortalOpen, setIsAdminPortalOpen] = useState(false);
   
   // Custom global light/dark theme toggle
@@ -102,6 +192,31 @@ export default function App() {
     }
   };
 
+  const categoriesRef = React.useRef<HTMLDivElement>(null);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 400) {
+        setShowScrollTop(true);
+      } else {
+        setShowScrollTop(false);
+      }
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const scrollCategories = (direction: 'left' | 'right') => {
+    if (categoriesRef.current) {
+      const scrollAmount = 350;
+      categoriesRef.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth'
+      });
+    }
+  };
+
   // Fetch salons and reservation logs from fullstack backend
   const fetchSalonsAndBookings = async () => {
     try {
@@ -115,6 +230,11 @@ export default function App() {
         const dataBookings = await resBookings.json();
         setBookings(dataBookings);
         setBookingsCount(dataBookings.length);
+      }
+      const resTestimonials = await fetch('/api/testimonials');
+      if (resTestimonials.ok) {
+        const dataTestimonials = await resTestimonials.json();
+        setTestimonials(dataTestimonials);
       }
     } catch (err) {
       console.error("Error loading server-synced parameters:", err);
@@ -208,11 +328,81 @@ export default function App() {
     { name: 'Priyanka Pai', role: 'Mehendi Artist', quote: 'Secured my bridal gold session through Maison de l’Or on GlamBlr. The 98% compatibility match from the DNA quiz was scarily accurate. Highly recommended!', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=100', area: 'Jayanagar', rating: 5 }
   ];
 
+  // Reusable Noomo Agency spring motion preset
+  const noomoScrollProps = {
+    initial: { opacity: 0, y: 55 },
+    whileInView: { opacity: 1, y: 0 },
+    viewport: { once: true, margin: "-120px" },
+    transition: { duration: 1.1, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] }
+  };
+
+  const staggerContainer = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.12,
+      }
+    }
+  };
+
+  const staggerItem = {
+    hidden: { opacity: 0, y: 45 },
+    show: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.95,
+        ease: [0.16, 1, 0.3, 1] as [number, number, number, number]
+      }
+    }
+  };
+
   return (
-    <div className={`relative min-h-screen selection:bg-[#D4AF37] selection:text-black transition-colors duration-300 ${
-      appDarkMode ? 'bg-[#0E0E15] text-[#FCFAF7] dark' : 'text-[#1E1A17] bg-[#FBF9F4]'
+    <div className={`relative min-h-screen selection:bg-[#D4AF37] selection:text-black transition-colors duration-700 md:cursor-none ${
+      appDarkMode ? 'bg-[#08080E] text-[#FCFAF7] dark' : 'text-[#1A1715] bg-[#FAF8F4]'
     }`}>
+
+      {/* NOOMO INTERACTIVE SPRING CURSOR WITH BEAUTIFUL SPARKLES ICON */}
+      <motion.div
+        className="hidden md:block fixed pointer-events-none z-50 text-amber-400"
+        animate={{
+          x: mousePos.x - 10,
+          y: mousePos.y - 10,
+          opacity: isCursorVisible ? 1 : 0,
+          rotate: cursorHovered ? 135 : 0,
+        }}
+        transition={{ type: "spring", stiffness: 280, damping: 24, mass: 0.08 }}
+        style={{
+          width: 20,
+          height: 20,
+          filter: "drop-shadow(0px 2px 6px rgba(245, 158, 11, 0.45))",
+        }}
+      >
+        <Sparkles className="w-5 h-5 fill-amber-400/20" />
+        
+        {/* Floating high-end luxury tooltip label next to the custom pointer icon */}
+        <AnimatePresence>
+          {cursorHovered && cursorText && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8, x: 14, y: 14 }}
+              animate={{ opacity: 1, scale: 1, x: 18, y: 4 }}
+              exit={{ opacity: 0, scale: 0.8, x: 14, y: 14 }}
+              transition={{ duration: 0.2 }}
+              className="absolute left-full top-0 whitespace-nowrap bg-black/90 dark:bg-white/95 text-white dark:text-black border border-white/10 dark:border-black/10 px-2.5 py-0.5 rounded-lg font-mono text-[8px] font-black tracking-widest uppercase shadow-[0_4px_12px_rgba(0,0,0,0.25)]"
+            >
+              {cursorText}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
       
+      {/* SLEEPIEST FLOATING AMBIENT HEALTH & WELLNESS ORBS */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+        <div className="absolute top-[15%] left-[-10%] w-[500px] h-[500px] rounded-full bg-violet-600/[0.05] dark:bg-violet-500/[0.07] blur-[130px] cosmic-orb-1" />
+        <div className="absolute top-[60%] right-[-10%] w-[600px] h-[600px] rounded-full bg-amber-500/[0.03] dark:bg-amber-400/[0.05] blur-[150px] cosmic-orb-2" />
+      </div>
+
       {/* 1. IMMERSIVE FIXED PARTICLE FIELD GROUND */}
       <ParticleField />
 
@@ -245,7 +435,11 @@ export default function App() {
           />
 
           {/* [B] CORE MARKETPLACE CONSOLE & SEARCH BLOCK */}
-          <section id="discovery_lounge_anchor" className="relative py-12 z-10">
+          <motion.section
+            id="discovery_lounge_anchor"
+            className="relative py-12 z-10"
+            {...noomoScrollProps}
+          >
             <div className="max-w-4xl mx-auto px-6">
               
               {/* HIGH UTILITY SLOTS SEARCH CONSOLE (The Marketplace Core) */}
@@ -344,7 +538,7 @@ export default function App() {
               </div>
 
             </div>
-          </section>
+          </motion.section>
 
           {/* [B] BRAND TICKER OVERFLOW COCOON */}
           <section id="scrolling_brand_cocoon" className="relative py-8 bg-[#FAF6F0] dark:bg-[#12121F] border-y border-[#E1DBCE] dark:border-indigo-950/60 z-10 overflow-hidden">
@@ -375,30 +569,55 @@ export default function App() {
           </section>
 
           {/* [C] CATEGORY QUICK SELECT H-SCROLL */}
-          <section id="category_quick_select" className="relative py-16 px-6 max-w-7xl mx-auto z-10 text-left space-y-6">
-            <div className="flex flex-col sm:flex-row items-baseline justify-[#A07D1A] justify-between gap-2 border-b border-[#E1DBCE] dark:border-indigo-950/50 pb-2.5">
+          <motion.section
+            id="category_quick_select"
+            className="relative py-16 px-6 max-w-7xl mx-auto z-10 text-left space-y-6 animate-fadeIn"
+            {...noomoScrollProps}
+          >
+            <div className="flex flex-col sm:flex-row items-baseline justify-between gap-4 border-b border-[#E1DBCE] dark:border-indigo-950/50 pb-3">
               <div>
-                <span className="text-[10px] text-[#A07D1A] dark:text-amber-500 tracking-[0.25em] font-bold block uppercase">Bespoke Categories</span>
-                <h3 className="font-serif italic text-2xl md:text-3xl text-[#1E1A17] dark:text-white font-semibold">Discovery Quick Select</h3>
+                <span className="text-[10px] text-[#A07D1A] dark:text-amber-500 tracking-[0.25em] font-bold block uppercase font-mono">Bespoke Categories</span>
+                <h3 className="font-serif italic text-3xl md:text-5xl text-[#1E1A17] dark:text-white font-semibold">
+                  Discovery <span className="noomo-outline-text font-sans font-light tracking-tight">Quick Select</span>
+                </h3>
               </div>
-              <span className="text-xs text-slate-400 dark:text-slate-500 leading-none shrink-0 italic">Swipe to browse curation menu →</span>
+              <div className="flex items-center gap-3 self-end sm:self-center">
+                <span className="text-xs text-slate-400 dark:text-slate-500 italic hidden sm:inline">Swipe or click arrows to browse curation menu →</span>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    onClick={() => scrollCategories('left')}
+                    className="p-2 border border-[#E1DBCE] dark:border-indigo-950/50 bg-white/5 hover:border-[#A07D1A] dark:hover:border-amber-500 rounded-full text-[#A07D1A] dark:text-amber-400 hover:bg-[#FAF6F0] dark:hover:bg-slate-900 cursor-pointer transition-colors focus:outline-none"
+                    aria-label="Scroll left"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => scrollCategories('right')}
+                    className="p-2 border border-[#E1DBCE] dark:border-indigo-950/50 bg-white/5 hover:border-[#A07D1A] dark:hover:border-amber-500 rounded-full text-[#A07D1A] dark:text-amber-400 hover:bg-[#FAF6F0] dark:hover:bg-slate-900 cursor-pointer transition-colors focus:outline-none"
+                    aria-label="Scroll right"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
             </div>
 
-            <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-thin select-category-row">
+            <div ref={categoriesRef} className="flex gap-4 overflow-x-auto pb-4 scrollbar-thin select-category-row">
               {categoriesList.map((cat, i) => (
                 <button
                   key={i}
                   onClick={() => navigateTo('explore', cat.value)}
-                  className="group relative flex-col shrink-0 w-44 bg-white dark:bg-[#12121E] border border-[#E1DBCE] dark:border-indigo-950/50 hover:border-[#A07D1A] dark:hover:border-amber-500 rounded-2xl p-4 text-left transition-all duration-300 transform hover:-translate-y-1.5 cursor-pointer hover:shadow-xs block"
+                  className="group relative flex-col shrink-0 w-48 bg-white dark:bg-[#12121E]/75 backdrop-blur-md border border-[#E1DBCE] dark:border-indigo-950/50 hover:border-[#A07D1A] dark:hover:border-amber-500 rounded-2xl p-5 text-left transition-all duration-300 transform hover:-translate-y-2 cursor-pointer hover:shadow-lg noomo-magnetic block noomo-grid-card"
+                  data-cursor-text="GO"
                 >
-                  <img src={cat.img} alt={cat.label} className="w-10 h-10 object-cover rounded-xl border border-slate-100 dark:border-indigo-950/20 mb-3 group-hover:scale-105 transition-transform" referrerPolicy="no-referrer" />
-                  <div className="font-serif italic text-sm font-bold text-[#1E1A17] dark:text-[#FCFAF7] group-hover:text-[#A07D1A] dark:group-hover:text-amber-400 transition-colors">{cat.label}</div>
-                  <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">{cat.count}</div>
-                  <ArrowRight className="absolute right-4 bottom-4 w-4 h-4 text-slate-300 dark:text-slate-600 group-hover:text-[#A07D1A] dark:group-hover:text-amber-400 group-hover:translate-x-1 transition-all" />
+                  <img src={cat.img} alt={cat.label} className="w-12 h-12 object-cover rounded-2xl border border-slate-100 dark:border-indigo-950/20 mb-4 group-hover:scale-105 transition-transform duration-500" referrerPolicy="no-referrer" />
+                  <div className="font-serif italic text-base font-bold text-[#1E1A17] dark:text-[#FCFAF7] group-hover:text-[#A07D1A] dark:group-hover:text-amber-400 transition-colors">{cat.label}</div>
+                  <div className="text-[10px] text-slate-400 dark:text-slate-500 mt-1">{cat.count}</div>
+                  <ArrowRight className="absolute right-5 bottom-5 w-4.5 h-4.5 text-slate-300 dark:text-slate-600 group-hover:text-[#A07D1A] dark:group-hover:text-amber-400 group-hover:translate-x-1.5 transition-all" />
                 </button>
               ))}
             </div>
-          </section>
+          </motion.section>
 
           {/* [K] COUTURE 3D LOBBY TOUR PORTAL */}
           <SalonLobby 
@@ -407,41 +626,60 @@ export default function App() {
           />
 
           {/* [D] FEATURED SALONS GRID */}
-          <section id="featured_salons" className="relative py-16 px-6 max-w-7xl mx-auto z-10 text-left space-y-8">
+          <motion.section
+            id="featured_salons"
+            className="relative py-16 px-6 max-w-7xl mx-auto z-10 text-left space-y-8"
+            {...noomoScrollProps}
+          >
             <div className="flex items-end justify-between border-b border-[#E1DBCE] dark:border-indigo-950/50 pb-3">
               <div>
-                <span className="text-[10px] text-[#A07D1A] dark:text-amber-500 tracking-[0.25em] font-bold block uppercase">Hand-audited Curation</span>
-                <h3 className="font-serif italic text-2xl md:text-3xl text-[#1E1A17] dark:text-white font-semibold">Featured Lounges</h3>
+                <span className="text-[10px] text-[#A07D1A] dark:text-amber-500 tracking-[0.25em] font-bold block uppercase font-mono">Hand-audited Curation</span>
+                <h3 className="font-serif italic text-3xl md:text-5xl text-[#1E1A17] dark:text-white font-semibold">
+                  Featured <span className="noomo-outline-text font-sans font-light tracking-tight">Lounges</span>
+                </h3>
               </div>
               <button
                 onClick={() => navigateTo('explore')}
-                className="text-xs uppercase tracking-widest text-[#A07D1A] dark:text-amber-500 hover:underline font-bold flex items-center gap-1 cursor-pointer"
+                className="text-xs uppercase tracking-widest text-[#A07D1A] dark:text-amber-500 hover:underline font-extrabold flex items-center gap-1 cursor-pointer noomo-magnetic px-4 py-2 rounded-full border border-[#E1DBCE] dark:border-indigo-950/50 bg-white/5"
               >
                 View All Lounges <ArrowRight className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <motion.div 
+              variants={staggerContainer}
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true, margin: "-100px" }}
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+            >
               {salons.filter((s) => s.isFeatured).slice(0, 6).map((salon) => (
-                <SalonCard
-                  key={salon.id}
-                  salon={salon}
-                  onSelect={(id) => {
-                    setSelectedSalonId(id);
-                    setCurrentPage('salon-detail');
-                    window.scrollTo({ top: 0 });
-                  }}
-                  onBookNow={(s) => handleOpenBooking(s)}
-                />
+                <motion.div key={salon.id} variants={staggerItem} className="h-full w-full">
+                  <SalonCard
+                    salon={salon}
+                    onSelect={(id) => {
+                       setSelectedSalonId(id);
+                       setCurrentPage('salon-detail');
+                       window.scrollTo({ top: 0 });
+                    }}
+                    onBookNow={(s) => handleOpenBooking(s)}
+                  />
+                </motion.div>
               ))}
-            </div>
-          </section>
+            </motion.div>
+          </motion.section>
 
           {/* [MAP] INTERACTIVE LUXURY BENGALURU MAP */}
-          <section id="interactive_lounge_cartography" className="relative py-16 px-6 max-w-7xl mx-auto z-10 text-left space-y-6">
+          <motion.section
+            id="interactive_lounge_cartography"
+            className="relative py-16 px-6 max-w-7xl mx-auto z-10 text-left space-y-6"
+            {...noomoScrollProps}
+          >
             <div className="border-b border-[#E1DBCE] dark:border-indigo-950/50 pb-3">
-              <span className="text-[10px] text-[#A07D1A] dark:text-amber-500 tracking-[0.25em] font-bold block uppercase">Cartography Lounge Grid</span>
-              <h3 className="font-serif italic text-2xl md:text-4xl text-[#1E1A17] dark:text-white font-semibold">Bengaluru Interactive Salon Coordinates</h3>
+              <span className="text-[10px] text-[#A07D1A] dark:text-amber-500 tracking-[0.25em] font-bold block uppercase font-mono">Cartography Lounge Grid</span>
+              <h3 className="font-serif italic text-3xl md:text-5xl text-[#1E1A17] dark:text-white font-semibold">
+                Bengaluru Salon <span className="noomo-outline-text font-sans font-light tracking-tight">Coordinates</span>
+              </h3>
             </div>
             <InteractiveMap
               salons={salons}
@@ -454,16 +692,20 @@ export default function App() {
               appDarkMode={appDarkMode}
               googleMapsKey={appConfig.googleMapsKey}
             />
-          </section>
+          </motion.section>
 
           {/* [OP] REAL WORLD MARKETPLACE OPERATIONS CONTROL CENTER (Solving authentic user search & routing pain points!) */}
-          <section id="marketplace_operations" className="relative py-16 px-6 max-w-7xl mx-auto z-10 text-left space-y-10">
+          <motion.section
+            id="marketplace_operations"
+            className="relative py-16 px-6 max-w-7xl mx-auto z-10 text-left space-y-10"
+            {...noomoScrollProps}
+          >
             <div className="space-y-2 border-b border-[#E1DBCE] dark:border-indigo-950/50 pb-3">
-              <span className="text-[10px] text-[#A07D1A] dark:text-amber-500 tracking-[0.25em] font-bold block uppercase">
+              <span className="text-[10px] text-[#A07D1A] dark:text-amber-500 tracking-[0.25em] font-bold block uppercase font-mono">
                 🚀 Dynamic Operational Intelligence
               </span>
-              <h3 className="font-serif italic text-2xl md:text-4xl text-[#1E1A17] dark:text-white font-semibold">
-                Bengaluru Marketplace Operations
+              <h3 className="font-serif italic text-3xl md:text-5xl text-[#1E1A17] dark:text-white font-semibold">
+                Marketplace <span className="noomo-outline-text font-sans font-light tracking-tight">Operations</span>
               </h3>
               <p className="text-xs text-[#5C534C] dark:text-slate-400 max-w-2xl leading-relaxed">
                 We don't just list addresses; we actively bridge service-level agreements (SLAs), pricing parity guarantees, and relocation matrices so you have total autonomy.
@@ -567,13 +809,19 @@ export default function App() {
               </div>
 
             </div>
-          </section>
+          </motion.section>
 
           {/* [E] HOW IT WORKS STEP TIMELINE */}
-          <section id="how_it_works" className="relative py-16 px-6 max-w-7xl mx-auto z-10 text-center space-y-10">
+          <motion.section
+            id="how_it_works"
+            className="relative py-16 px-6 max-w-7xl mx-auto z-10 text-center space-y-10"
+            {...noomoScrollProps}
+          >
             <div className="space-y-2">
-              <span className="text-[10px] text-[#A07D1A] dark:text-amber-500 tracking-[0.25em] font-bold block uppercase">Bespoke Experience</span>
-              <h3 className="font-serif italic text-2xl md:text-4xl text-[#1E1A17] dark:text-white font-semibold">How It Works</h3>
+              <span className="text-[10px] text-[#A07D1A] dark:text-amber-500 tracking-[0.25em] font-bold block uppercase font-mono">Bespoke Experience</span>
+              <h3 className="font-serif italic text-3xl md:text-5xl text-[#1E1A17] dark:text-white font-semibold">
+                How It <span className="noomo-outline-text font-sans font-light tracking-tight">Works</span>
+              </h3>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -584,67 +832,84 @@ export default function App() {
               ].map((item, idx) => (
                 <div
                   key={idx}
-                  className="group relative bg-white dark:bg-[#12121E] border border-[#E1DBCE] dark:border-indigo-950/55 hover:border-[#A07D1A] dark:hover:border-amber-500 rounded-2xl p-6.5 text-left hover:-translate-y-1 transition-all duration-305 shadow-2xs"
+                  className="group relative bg-white dark:bg-[#12121E]/80 backdrop-blur-md border border-[#E1DBCE] dark:border-indigo-950/55 hover:border-[#A07D1A] dark:hover:border-amber-500 rounded-[2rem] p-8 text-left hover:-translate-y-2 transition-all duration-300 shadow-2xs noomo-magnetic noomo-grid-card"
                 >
-                  <span className="font-serif italic text-4xl font-extrabold text-[#A07D1A] dark:text-amber-400 block opacity-40 group-hover:opacity-100 transition-opacity mb-2">
+                  <span className="font-serif italic text-5xl font-black text-[#A07D1A]/10 dark:text-amber-400/10 block mb-2 leading-none">
                     {item.step}
                   </span>
-                  <h4 className="font-serif italic text-lg text-[#1E1A17] dark:text-white font-semibold">{item.title}</h4>
-                  <p className="text-xs text-[#5C534C] dark:text-slate-400 mt-2 leading-relaxed">{item.desc}</p>
+                  <h4 className="font-serif italic text-xl text-[#1E1A17] dark:text-white font-bold">{item.title}</h4>
+                  <p className="text-xs text-[#5C534C] dark:text-slate-400 mt-2 leading-relaxed font-light">{item.desc}</p>
                 </div>
               ))}
             </div>
-          </section>
+          </motion.section>
 
           {/* [F] SCROLL COUNTER STATS SECTION */}
           <StatsSection />
 
           {/* [G] AI STYLE DNA QUIZ BRUTALIST CALLOUT BRAND */}
-          <section id="dna_quiz_cocoon" className="relative py-16 px-6 max-w-7xl mx-auto z-10 text-center">
-            <div className="relative bg-[#FAF6F0] dark:bg-[#161625] border border-[#D4AF37]/50 dark:border-indigo-950/65 rounded-2xl p-8 md:p-12 overflow-hidden flex flex-col items-center justify-center space-y-5 shadow-xs">
+          <motion.section
+            id="dna_quiz_cocoon"
+            className="relative py-16 px-6 max-w-7xl mx-auto z-10 text-center"
+            {...noomoScrollProps}
+          >
+            <div className="relative bg-[#FAF6F0] dark:bg-[#161625] border border-[#D4AF37]/50 dark:border-indigo-950/65 rounded-[2.5rem] p-10 md:p-16 overflow-hidden flex flex-col items-center justify-center space-y-6 shadow-md noomo-grid-card">
               {/* background visual circles */}
-              <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-gradient-to-tr from-[rgba(160,125,26,0.03)] to-transparent blur-3xl pointer-events-none"></div>
+              <div className="absolute top-0 right-0 w-80 h-80 rounded-full bg-gradient-to-tr from-[rgba(160,125,26,0.05)] to-transparent blur-3xl pointer-events-none"></div>
               
-              <div className="w-12 h-12 rounded-full bg-white dark:bg-slate-900 border border-[#D4AF37] flex items-center justify-center animate-bounce shadow-2xs">
-                <Sparkles className="w-6 h-6 text-[#A07D1A] dark:text-amber-400" />
+              <div className="w-14 h-14 rounded-full bg-white dark:bg-slate-900 border border-[#D4AF37] flex items-center justify-center animate-bounce shadow-xs relative z-10">
+                <Sparkles className="w-7 h-7 text-[#A07D1A] dark:text-amber-400" />
               </div>
 
-              <div className="space-y-2">
-                <span className="text-[10px] text-[#A07D1A] dark:text-amber-400 tracking-[0.25em] font-bold block uppercase">Predictive Diagnostics</span>
-                <h4 className="font-serif italic text-2xl md:text-3xl text-[#1E1A17] dark:text-white font-extrabold max-w-lg leading-tight">
+              <div className="space-y-3 relative z-10">
+                <span className="text-[10px] text-[#A07D1A] dark:text-amber-400 tracking-[0.25em] font-bold block uppercase font-mono">Predictive Diagnostics</span>
+                <h4 className="font-serif italic text-3xl md:text-5xl text-[#1E1A17] dark:text-white font-extrabold max-w-2xl leading-tight font-light">
                   Don't know your specific style?<br />
-                  <span className="text-[#A07D1A] dark:text-amber-400">Let AI compute your DNA Match.</span>
+                  <span className="text-[#A07D1A] dark:text-amber-400">Let AI compute your <span className="noomo-outline-text font-sans font-light tracking-tight">DNA Match</span>.</span>
                 </h4>
-                <p className="text-xs text-[#5C534C] dark:text-slate-400 max-w-sm mx-auto leading-relaxed">
+                <p className="text-xs md:text-sm text-[#5C534C] dark:text-slate-400 max-w-md mx-auto leading-relaxed font-light">
                   Provide brief texture and budget coordinates, analyze styling match ratios, and immediately get 3 tailored top salons.
                 </p>
               </div>
 
               <button
                 onClick={() => setIsQuizOpen(true)}
-                className="px-8 py-3.5 bg-[#A07D1A] dark:bg-amber-400 hover:bg-[#805C06] dark:text-slate-900 dark:hover:bg-white text-white font-extrabold rounded-xl text-xs uppercase tracking-widest hover:scale-102 hover:shadow-xs transition-all cursor-pointer"
+                className="px-8 py-4 bg-[#A07D1A] dark:bg-amber-400 hover:bg-white dark:hover:bg-white text-white dark:text-slate-900 font-extrabold rounded-full text-xs uppercase tracking-widest hover:scale-105 transition-all duration-300 cursor-pointer shadow-md noomo-magnetic"
               >
                 Scan My Style DNA
               </button>
             </div>
-          </section>
+          </motion.section>
 
           {/* [H] TESTIMONIALS SECTION */}
-          <section id="testimonials_cocoon" className="relative py-16 px-6 max-w-7xl mx-auto z-10 text-center space-y-8">
+          <motion.section
+            id="testimonials_cocoon"
+            className="relative py-16 px-6 max-w-7xl mx-auto z-10 text-center space-y-8"
+            {...noomoScrollProps}
+          >
             <div className="space-y-2">
-              <span className="text-[10px] text-[#A07D1A] dark:text-amber-500 tracking-[0.25em] font-bold block uppercase">Vogue & Co. verified</span>
-              <h3 className="font-serif italic text-2xl md:text-4xl text-[#1E1A17] dark:text-white font-semibold">Lounge Reviews</h3>
+              <span className="text-[10px] text-[#A07D1A] dark:text-amber-500 tracking-[0.25em] font-bold block uppercase font-mono">Vogue & Co. verified</span>
+              <h3 className="font-serif italic text-3xl md:text-5xl text-[#1E1A17] dark:text-white font-semibold">
+                Lounge <span className="noomo-outline-text font-sans font-light tracking-tight">Reviews</span>
+              </h3>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {localTestimonials.map((t, idx) => (
-                <div
+              {(testimonials && testimonials.length > 0 ? testimonials : localTestimonials).map((t, idx) => (
+                <motion.div
                   key={idx}
-                  className="bg-white dark:bg-[#12121E] border border-[#E1DBCE]/80 dark:border-indigo-950/55 rounded-2xl p-6 text-left relative overflow-hidden flex flex-col justify-between h-full hover:border-[#A07D1A] dark:hover:border-amber-500 transition-colors shadow-2xs"
+                  drag
+                  dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
+                  dragElastic={0.25}
+                  whileDrag={{ scale: 1.05, rotate: idx % 2 === 0 ? 1.5 : -1.5, zIndex: 30 }}
+                  whileHover={{ y: -8, scale: 1.01 }}
+                  data-cursor-text="DRAG ME"
+                  className="bg-white dark:bg-[#12121E] border border-[#E1DBCE]/80 dark:border-indigo-950/55 rounded-2xl p-6 text-left relative overflow-hidden flex flex-col justify-between h-full hover:border-[#A07D1A] dark:hover:border-amber-500 transition-colors shadow-2xs cursor-grab active:cursor-grabbing select-none"
+                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
                 >
-                  <Quote className="absolute right-4 top-4 w-10 h-10 text-slate-100 dark:text-slate-900/40 stroke-[1.5]" />
+                  <Quote className="absolute right-4 top-4 w-10 h-10 text-slate-100 dark:text-slate-900/40 stroke-[1.5] pointer-events-none" />
                   
-                  <div className="space-y-4">
+                  <div className="space-y-4 pointer-events-none">
                     <div className="flex text-[#A07D1A] dark:text-amber-500 gap-0.5">
                       {Array.from({ length: t.rating }).map((_, i) => (
                         <Star key={i} className="w-3.5 h-3.5 fill-[#A07D1A] dark:fill-amber-500 text-[#A07D1A] dark:text-amber-500" />
@@ -655,17 +920,17 @@ export default function App() {
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-3 pt-5 mt-5 border-t border-slate-100 dark:border-slate-900/45">
+                  <div className="flex items-center gap-3 pt-5 mt-5 border-t border-slate-100 dark:border-slate-900/45 pointer-events-none">
                     <img src={t.avatar} alt={t.name} className="w-9 h-9 rounded-full object-cover" referrerPolicy="no-referrer" />
                     <div>
                       <div className="text-xs font-serif font-bold text-slate-800 dark:text-slate-100">{t.name}</div>
                       <div className="text-[9px] text-[#A07D1A] dark:text-amber-500 font-mono uppercase font-bold">{t.role} • {t.area}</div>
                     </div>
                   </div>
-                </div>
+                </motion.div>
               ))}
             </div>
-          </section>
+          </motion.section>
 
         </div>
       )}
@@ -767,6 +1032,24 @@ export default function App() {
         whatsappNumber={appConfig.whatsappNumber}
         tallyFormId={appConfig.tallyFormId}
       />
+
+      {/* 8. ELEGANT FLOATING SCROLL TO TOP BUTTON (Noomo Style) */}
+      <AnimatePresence>
+        {showScrollTop && (
+          <motion.button
+            initial={{ opacity: 0, scale: 0.8, y: 30 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.8, y: 30 }}
+            whileHover={{ scale: 1.1, translateY: -4 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            className="fixed bottom-6 right-6 z-40 p-3.5 bg-white/80 dark:bg-[#12121E]/80 backdrop-blur-md border border-[#E1DBCE] dark:border-indigo-950/70 hover:border-[#A07D1A] dark:hover:border-amber-500 rounded-full text-[#A07D1A] dark:text-amber-400 hover:text-white dark:hover:text-slate-950 hover:bg-[#A07D1A] dark:hover:bg-amber-400 shadow-[0_8px_24px_rgba(44,38,33,0.1)] transition-colors duration-300 cursor-pointer focus:outline-none"
+            aria-label="Scroll to top"
+          >
+            <ChevronUp className="w-5 h-5" />
+          </motion.button>
+        )}
+      </AnimatePresence>
 
     </div>
   );

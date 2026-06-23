@@ -101,6 +101,21 @@ export default function SalonDetail({ salon, onBack, onBookService, onBookAny, g
             </div>
           </div>
 
+          {/* ACTIVE PROMOTION BANNER */}
+          {salon.offerTitle && (
+            <div className="bg-amber-500/10 dark:bg-amber-500/5 border border-dashed border-[#D4AF37] p-6 rounded-2xl text-left space-y-2 relative overflow-hidden">
+              <div className="absolute -right-8 -top-8 w-24 h-24 rounded-full bg-[#D4AF37]/10 blur-xl pointer-events-none"></div>
+              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 block">⚡ Limited-Time Active Promotion</span>
+              <h4 className="font-serif italic text-lg font-bold text-[#A07D1A] dark:text-amber-400">{salon.offerTitle}</h4>
+              <p className="text-xs text-slate-600 dark:text-slate-350 leading-relaxed">{salon.offerDesc}</p>
+              {salon.offerCode && (
+                <div className="mt-2 inline-block bg-[#FAF6F0] dark:bg-[#161625] border border-[#D4AF37]/35 px-2.5 py-1 rounded font-mono text-[10px] text-amber-700 dark:text-amber-400 font-bold">
+                  Use Promo Code: <span className="underline select-all">{salon.offerCode}</span>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* GALLERY LIST */}
           <div className="space-y-3">
             <h4 className="font-serif italic text-lg text-[#1E1A17] dark:text-[#FCFAF7] font-semibold">Lounge Ambiance Galleries</h4>

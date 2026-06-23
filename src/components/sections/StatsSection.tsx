@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { motion } from 'motion/react';
 
 interface StatItem {
   target: number;
@@ -51,31 +52,52 @@ export default function StatsSection() {
     if (!hasTriggered) return;
 
     let startTime: number | null = null;
-    const duration = 1500; // 1.5s animation
+    const duration = 2200; // Elegant, smooth 2.2s count timeline
+
+    // Premium expo ease-out curve for high-end feel
+    const easeOutExpo = (x: number): number => {
+      return x === 1 ? 1 : 1 - Math.pow(2, -10 * x);
+    };
+
+    let rAFId: number;
 
     const animate = (timestamp: number) => {
       if (!startTime) startTime = timestamp;
-      const progress = Math.min((timestamp - startTime) / duration, 1);
+      const elapsed = timestamp - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      
+      const easeProgress = easeOutExpo(progress);
 
       const nextCounts = STATS_DATA.map((s) => {
-        return Math.floor(progress * s.target * 10) / 10;
+        const val = easeProgress * s.target;
+        return s.decimals ? Math.round(val * 10) / 10 : Math.round(val);
       });
 
       setCounts(nextCounts);
 
       if (progress < 1) {
-        requestAnimationFrame(animate);
+        rAFId = requestAnimationFrame(animate);
       } else {
-        // clamp exactly to target values at the end of animation
         setCounts(STATS_DATA.map((s) => s.target));
       }
     };
 
-    requestAnimationFrame(animate);
+    rAFId = requestAnimationFrame(animate);
+    return () => {
+      cancelAnimationFrame(rAFId);
+    };
   }, [hasTriggered]);
 
   return (
-    <section ref={containerRef} id="stats_section_grid" className="relative py-16 px-4 max-w-7xl mx-auto z-10 transition-colors">
+    <motion.section
+      ref={containerRef}
+      id="stats_section_grid"
+      className="relative py-16 px-4 max-w-7xl mx-auto z-10 transition-colors"
+      initial={{ opacity: 0, y: 55 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-120px" }}
+      transition={{ duration: 1.1, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] }}
+    >
       <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
         {STATS_DATA.map((stat, idx) => (
           <div
@@ -102,6 +124,6 @@ export default function StatsSection() {
           </div>
         ))}
       </div>
-    </section>
+    </motion.section>
   );
 }

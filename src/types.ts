@@ -31,6 +31,9 @@ export interface Salon {
   description: string;
   reviewsCount: number;
   reviews: Review[];
+  offerTitle?: string;
+  offerDesc?: string;
+  offerCode?: string;
 }
 
 export interface Booking {

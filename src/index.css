@@ -1,25 +1,48 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&display=swap');
 @import "tailwindcss";
 
 @variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-serif: "Playfair Display", Georgia, Cambria, "Times New Roman", Times, serif;
+  --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Playfair Display", Georgia, Cambria, serif;
 }
 
 body {
-  background-color: #FBF9F4; /* Luxurious Pale Alabaster / Cashmere */
-  color: #1E1A17; /* Noble Obsidian/Espresso body text for high contrast readability */
+  background-color: #FAF8F4; /* Nolan Cashmere / Alabaster */
+  color: #1A1715; /* Charcoal Obsidian */
   font-family: var(--font-sans);
   overflow-x: hidden;
-  transition: background-color 300ms cubic-bezier(0.16, 1, 0.3, 1), color 300ms cubic-bezier(0.16, 1, 0.3, 1);
+  transition: background-color 600ms cubic-bezier(0.16, 1, 0.3, 1), color 600ms cubic-bezier(0.16, 1, 0.3, 1);
+  letter-spacing: -0.01em;
 }
 
 html[data-theme='dark'] body,
 html.dark body {
-  background-color: #0E0E15;
-  color: #FCFAF7;
+  background-color: #08080E; /* Sleepiest Cosmic Obsidian */
+  color: #FAF8F5;
+}
+
+/* Cosmic floating gradient orbs representing Sleepiest wellness space */
+@keyframes orb-float-1 {
+  0% { transform: translate(0px, 0px) scale(1); }
+  33% { transform: translate(30px, -50px) scale(1.1); }
+  66% { transform: translate(-20px, 20px) scale(0.95); }
+  100% { transform: translate(0px, 0px) scale(1); }
+}
+
+@keyframes orb-float-2 {
+  0% { transform: translate(0px, 0px) scale(1); }
+  50% { transform: translate(-40px, 40px) scale(1.05); }
+  100% { transform: translate(0px, 0px) scale(1); }
+}
+
+.cosmic-orb-1 {
+  animation: orb-float-1 16s ease-in-out infinite;
+}
+
+.cosmic-orb-2 {
+  animation: orb-float-2 20s ease-in-out infinite;
 }
 
 /* Custom scrolling marquee animation */
@@ -31,65 +54,125 @@ html.dark body {
 .animate-marquee {
   display: flex;
   width: max-content;
-  animation: marquee 32s linear infinite;
+  animation: marquee 35s linear infinite;
+}
+
+/* Noomo style fluid spring micro-interactions */
+.noomo-magnetic {
+  transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+}
+.noomo-magnetic:hover {
+  transform: translateY(-6px) scale(1.02);
+  box-shadow: 0 20px 40px rgba(160, 125, 26, 0.08);
+}
+.dark .noomo-magnetic:hover {
+  box-shadow: 0 20px 40px rgba(139, 92, 246, 0.12);
+}
+
+/* Nolan Omura high-contrast minimal divider */
+.nolan-divider {
+  height: 1px;
+  background: currentColor;
+  opacity: 0.08;
+  width: 100%;
 }
 
 /* Custom fade-in with micro-slide */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
+  from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
 .animate-fadeIn {
-  animation: fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* Custom slide from right for reservation drawer or search overlays */
-@keyframes slideIn {
-  from { transform: translateX(100%); }
-  to { transform: translateX(0); }
-}
-
-.animate-slideIn {
-  animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-/* Luxury Soft Glowing keyframes representing Color Psychology scanner beams */
-@keyframes scanning {
-  0% { transform: translateY(-100%); opacity: 0.1; }
-  50% { opacity: 0.75; }
-  100% { transform: translateY(100%); opacity: 0.1; }
-}
-
-.animate-scanning {
-  animation: scanning 4s ease-in-out infinite;
-}
-
-/* Premium scrollbar styling */
+/* Premium custom scrollbar */
 ::-webkit-scrollbar {
-  width: 7px;
-  height: 7px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #FBF9F4;
+  background: #FAF8F4;
 }
-html[data-theme='dark'] ::-webkit-scrollbar-track,
 html.dark ::-webkit-scrollbar-track {
-  background: #0E0E15;
+  background: #08080E;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(160, 125, 26, 0.22);
+  background: rgba(160, 125, 26, 0.15);
   border-radius: 9px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(160, 125, 26, 0.45);
+  background: rgba(160, 125, 26, 0.35);
 }
 
-/* Smooth Interactive Glow states for Luxury Cards */
-.luxury-card-shadow {
-  box-shadow: 0 4px 20px rgba(44, 38, 33, 0.03);
-  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+/* Glowing cursor blur backdrops */
+.glow-backdrop-blur {
+  backdrop-filter: blur(80px) saturate(140%);
 }
-.luxury-card-shadow:hover {
-  box-shadow: 0 10px 30px rgba(160, 125, 26, 0.08);
+
+/* Custom Outlined text style inspired by Noomo Agency */
+.noomo-outline-text {
+  -webkit-text-stroke: 1px currentColor;
+  color: transparent;
 }
+
+/* Fluid Noomo Interactive Grid */
+.noomo-grid-card {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.noomo-grid-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(to bottom right, rgba(255, 255, 255, 0.15), transparent, rgba(160, 125, 26, 0.15));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.dark .noomo-grid-card::before {
+  background: linear-gradient(to bottom right, rgba(255, 255, 255, 0.08), transparent, rgba(139, 92, 246, 0.15));
+}
+
+/* LENIS SMOOTH SCROLL INTEGRATION HARDENING */
+html.lenis, html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-scrolling iframe {
+  pointer-events: none;
+}
+
+/* Fluid Noomo inertia transitions */
+.noomo-scroll-reveal {
+  transform: translateY(40px);
+  opacity: 0;
+  transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.noomo-scroll-reveal.is-in-view {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+
+

@@ -41,6 +41,24 @@ function TrajectoryProgress({ scrollYProgress }: TrajectoryProgressProps) {
 export default function VideoScrollHero({ onExploreClick, onJoinClick, appDarkMode = false }: VideoScrollHeroProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   
+  const scrollToNextSlide = (slideIndex: number) => {
+    if (!containerRef.current) return;
+    const containerTop = containerRef.current.offsetTop;
+    const containerHeight = containerRef.current.offsetHeight;
+    let targetScroll = containerTop;
+    
+    if (slideIndex === 1) {
+      targetScroll = containerTop + containerHeight * 0.41;
+    } else if (slideIndex === 2) {
+      targetScroll = containerTop + containerHeight * 0.76;
+    }
+    
+    window.scrollTo({
+      top: targetScroll,
+      behavior: 'smooth'
+    });
+  };
+  
   // Custom high-performance, GPU-friendly motion value
   const scrollYProgress = useMotionValue(0);
 
@@ -107,6 +125,12 @@ export default function VideoScrollHero({ onExploreClick, onJoinClick, appDarkMo
       
       {/* Sticky layout container stays fully screen-pinned during scroll lifecycle */}
       <div className="sticky top-0 h-screen w-full overflow-hidden flex items-center justify-center">
+        
+        {/* SLEEPIEST BEAUTIFUL FLOATING BACKGROUND ORBS */}
+        <div className="absolute inset-0 pointer-events-none z-1 overflow-hidden opacity-35">
+          <div className="absolute top-1/4 left-1/4 w-[380px] h-[380px] rounded-full bg-indigo-500/30 blur-[130px] cosmic-orb-1" />
+          <div className="absolute bottom-1/4 right-1/4 w-[420px] h-[420px] rounded-full bg-amber-500/15 blur-[150px] cosmic-orb-2" />
+        </div>
         
         {/* ==================== 1. VIVID, CLEAR & RADIANT LANDING MEDIA BACKDROPS ==================== */}
 
@@ -190,7 +214,7 @@ export default function VideoScrollHero({ onExploreClick, onJoinClick, appDarkMo
 
         {/* ==================== 3. CHOREOGRAPHED NON-OVERLAPPING STACK ==================== */}
         {/* We place each card inside an absolute coordinates block. This guarantees they occupy the exact same physical position and can never displace or push each other! */}
-        <div className="relative z-30 max-w-4xl mx-auto px-6 w-full h-[500px] flex items-center justify-center">
+        <div className="relative z-30 max-w-4xl mx-auto px-6 w-full h-[520px] flex items-center justify-center">
           
           {/* SLIDE 1 CARD: WELCOME OVERVIEW */}
           <motion.div
@@ -203,44 +227,64 @@ export default function VideoScrollHero({ onExploreClick, onJoinClick, appDarkMo
             className="w-full max-w-2xl flex flex-col items-center text-center"
           >
             {/* Premium Frosted Capsule */}
-            <div className="bg-slate-950/70 backdrop-blur-xl border border-white/10 rounded-2xl p-6 md:p-10 shadow-[0_24px_50px_rgba(0,0,0,0.6)] w-full hover:border-[#D4AF37]/30 transition-colors duration-300">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/[0.07] backdrop-blur-md rounded-full border border-[#D4AF37]/45 mb-4">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#D4AF37] animate-pulse" />
-                <span className="text-[9.5px] font-mono text-amber-100 uppercase tracking-[0.25em] font-extrabold flex items-center gap-1">
+            <div className="bg-[#030308]/75 backdrop-blur-3xl border border-white/10 rounded-[2.25rem] p-8 md:p-11 shadow-[0_30px_70px_rgba(0,0,0,0.85),0_0_50px_rgba(212,175,55,0.05)] w-full hover:border-amber-400/30 transition-all duration-500 relative overflow-hidden group">
+              {/* Nolan Omura floating number watermark */}
+              <div className="absolute top-6 right-8 text-[7rem] font-serif italic text-white/[0.04] select-none font-medium leading-none pointer-events-none">01</div>
+              
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/[0.05] backdrop-blur-md rounded-full border border-white/10 mb-5 relative z-10">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                <span className="text-[9.5px] font-mono text-amber-200 uppercase tracking-[0.25em] font-extrabold flex items-center gap-1">
                   <Compass className="w-3.5 h-3.5 text-amber-400" /> Bangalore's Hand-Audited Lounge Grid
                 </span>
               </div>
 
-              <h1 className="font-serif italic text-4xl md:text-5xl font-extrabold tracking-tight text-white leading-[1.12]">
+              <h1 className="font-serif italic text-4xl md:text-5xl font-extrabold tracking-tight text-white leading-[1.12] relative z-10">
                 A Private Heaven <br />
                 <span className="bg-gradient-to-r from-amber-200 via-amber-400 to-amber-600 bg-clip-text text-transparent font-medium">
                   For Sophisticated Stylers
                 </span>
               </h1>
 
-              <p className="text-xs md:text-sm text-slate-200 font-sans max-w-xl mx-auto leading-relaxed mt-4 font-light">
+              <p className="text-xs md:text-sm text-slate-300 font-sans max-w-xl mx-auto leading-relaxed mt-5 font-light relative z-10">
                 We hand-audit Bangalore's most exclusive salon architectural masterpieces. Undergo bespoke routines with zero wait times. Secure private slot reservations smoothly.
               </p>
 
-              <div className="pt-6 flex flex-col sm:flex-row items-center gap-4 justify-center">
+              <div className="pt-8 flex flex-col sm:flex-row items-center gap-4 justify-center relative z-10">
                 <button
                   onClick={onExploreClick}
-                  className="w-full sm:w-auto px-6 py-3.5 bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs uppercase font-extrabold tracking-widest rounded-xl shadow-lg hover:shadow-xl hover:shadow-amber-400/20 hover:scale-[1.03] active:scale-98 transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="w-full sm:w-auto px-7 py-4 bg-amber-400 hover:bg-white text-slate-950 text-xs uppercase font-extrabold tracking-widest rounded-full shadow-lg hover:shadow-xl hover:shadow-amber-400/20 hover:scale-[1.03] active:scale-98 transition-all duration-300 flex items-center justify-center gap-1.5 cursor-pointer noomo-magnetic"
                 >
                   <Sparkles className="w-4 h-4 text-slate-950" /> Explore Active Grid
                 </button>
                 <button
                   onClick={onJoinClick}
-                  className="w-full sm:w-auto px-6 py-3.5 bg-white/10 hover:bg-white/15 border border-white/20 text-white text-xs uppercase font-extrabold tracking-widest rounded-xl hover:scale-[1.03] active:scale-98 transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="w-full sm:w-auto px-7 py-4 bg-white/5 hover:bg-white/10 border border-white/15 text-white text-xs uppercase font-extrabold tracking-widest rounded-full hover:scale-[1.03] active:scale-98 transition-all duration-300 flex items-center justify-center gap-1.5 cursor-pointer noomo-magnetic"
                 >
-                  <Scroll className="w-4 h-4 text-amber-300" /> List Your Lounge
+                  <Scroll className="w-4 h-4 text-amber-400" /> List Your Lounge
                 </button>
               </div>
 
-              <div className="pt-5 flex flex-col items-center gap-0.5 text-amber-400/80">
-                <span className="text-[9px] font-mono tracking-widest uppercase animate-pulse">Scroll to inspect design hallmarks</span>
-                <span className="text-xs">↓</span>
-              </div>
+              <button
+                onClick={() => scrollToNextSlide(1)}
+                className="group/scroll pt-6 flex flex-col items-center gap-1.5 text-amber-400/60 hover:text-amber-400 focus:outline-none relative z-10 cursor-pointer w-full"
+              >
+                <span className="text-[9.5px] font-mono tracking-widest uppercase animate-pulse group-hover/scroll:translate-y-[-2px] transition-transform duration-300">
+                  Click or Scroll to inspect design hallmarks
+                </span>
+                <div className="w-5 h-8 border border-amber-400/30 group-hover/scroll:border-amber-400/80 rounded-full flex justify-center p-1 transition-colors">
+                  <motion.div
+                    animate={{
+                      y: [0, 8, 0],
+                    }}
+                    transition={{
+                      duration: 1.5,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                    }}
+                    className="w-1.5 h-2 bg-amber-400 rounded-full"
+                  />
+                </div>
+              </button>
             </div>
           </motion.div>
 
@@ -255,47 +299,67 @@ export default function VideoScrollHero({ onExploreClick, onJoinClick, appDarkMo
             className="w-full max-w-2xl flex flex-col items-center text-center"
           >
             {/* Premium Frosted Capsule */}
-            <div className="bg-slate-950/70 backdrop-blur-xl border border-white/10 rounded-2xl p-6 md:p-10 shadow-[0_24px_50px_rgba(0,0,0,0.6)] w-full hover:border-[#D4AF37]/30 transition-colors duration-300">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-500/10 backdrop-blur-md rounded-full border border-emerald-500/35 mb-4">
+            <div className="bg-[#030308]/75 backdrop-blur-3xl border border-white/10 rounded-[2.25rem] p-8 md:p-11 shadow-[0_30px_70px_rgba(0,0,0,0.85),0_0_50px_rgba(16,185,129,0.03)] w-full hover:border-emerald-400/30 transition-all duration-500 relative overflow-hidden group">
+              {/* Nolan Omura floating number watermark */}
+              <div className="absolute top-6 right-8 text-[7rem] font-serif italic text-white/[0.04] select-none font-medium leading-none pointer-events-none">02</div>
+
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-500/10 backdrop-blur-md rounded-full border border-emerald-500/25 mb-5 relative z-10">
                 <Shield className="w-3.5 h-3.5 text-emerald-400" />
-                <span className="text-[9.5px] font-mono text-emerald-400 uppercase tracking-[0.25em] font-extrabold">
+                <span className="text-[9.5px] font-mono text-emerald-300 uppercase tracking-[0.25em] font-extrabold">
                   42 Strict Luxury Hallmarks
                 </span>
               </div>
 
-              <h2 className="font-serif italic text-3xl md:text-4xl font-extrabold tracking-tight text-white leading-[1.12]">
+              <h2 className="font-serif italic text-3xl md:text-4xl font-extrabold tracking-tight text-white leading-[1.12] relative z-10">
                 Unmatched Quality <br />
                 <span className="text-amber-400 font-medium">In Every Audited Detail</span>
               </h2>
 
-              <p className="text-xs md:text-sm text-slate-200 font-sans max-w-xl mx-auto leading-relaxed mt-4 font-light">
+              <p className="text-xs md:text-sm text-slate-300 font-sans max-w-xl mx-auto leading-relaxed mt-5 font-light relative z-10">
                 From organic essential therapies to clinical cosmetic standard validation, only boutique lounges passing our 42-stage checklist enter the premium grid.
               </p>
 
               {/* Operational indicators Grid */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5 pt-6 w-full">
-                <div className="bg-black/40 backdrop-blur-md border border-white/5 p-3 rounded-xl flex flex-col items-center">
-                  <span className="text-xl font-serif text-amber-400 font-black italic">42</span>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5 pt-7 w-full relative z-10">
+                <div className="bg-white/5 backdrop-blur-md border border-white/10 p-4 rounded-2xl flex flex-col items-center hover:bg-white/10 transition-colors">
+                  <span className="text-2xl font-serif text-amber-400 font-black italic">42</span>
                   <span className="text-[8.5px] font-mono text-slate-300 uppercase mt-0.5 tracking-wider">Hallmarks</span>
                 </div>
-                <div className="bg-black/40 backdrop-blur-md border border-white/5 p-3 rounded-xl flex flex-col items-center">
-                  <span className="text-xl font-serif text-amber-400 font-black italic">№ 1</span>
+                <div className="bg-white/5 backdrop-blur-md border border-white/10 p-4 rounded-2xl flex flex-col items-center hover:bg-white/10 transition-colors">
+                  <span className="text-2xl font-serif text-amber-400 font-black italic">№ 1</span>
                   <span className="text-[8.5px] font-mono text-slate-300 uppercase mt-0.5 tracking-wider">Curation tier</span>
                 </div>
-                <div className="bg-black/40 backdrop-blur-md border border-white/5 p-3 rounded-xl flex flex-col items-center">
-                  <span className="text-xl font-serif text-amber-400 font-black italic">100%</span>
+                <div className="bg-white/5 backdrop-blur-md border border-white/10 p-4 rounded-2xl flex flex-col items-center hover:bg-white/10 transition-colors">
+                  <span className="text-2xl font-serif text-amber-400 font-black italic">100%</span>
                   <span className="text-[8.5px] font-mono text-slate-300 uppercase mt-0.5 tracking-wider">Price Parity</span>
                 </div>
-                <div className="bg-black/40 backdrop-blur-md border border-white/5 p-3 rounded-xl flex flex-col items-center">
-                  <span className="text-xl font-serif text-emerald-400 font-black italic">Direct</span>
+                <div className="bg-white/5 backdrop-blur-md border border-white/10 p-4 rounded-2xl flex flex-col items-center hover:bg-white/10 transition-colors">
+                  <span className="text-2xl font-serif text-emerald-400 font-black italic">Direct</span>
                   <span className="text-[8.5px] font-mono text-slate-300 uppercase mt-0.5 tracking-wider">SLA Security</span>
                 </div>
               </div>
 
-              <div className="pt-5 flex flex-col items-center gap-0.5 text-amber-400/80">
-                <span className="text-[9px] font-mono tracking-widest uppercase animate-pulse">Scroll to lock reservations instantly</span>
-                <span className="text-xs">↓</span>
-              </div>
+              <button
+                onClick={() => scrollToNextSlide(2)}
+                className="group/scroll pt-6 flex flex-col items-center gap-1.5 text-amber-400/60 hover:text-amber-400 focus:outline-none relative z-10 cursor-pointer w-full"
+              >
+                <span className="text-[9.5px] font-mono tracking-widest uppercase animate-pulse group-hover/scroll:translate-y-[-2px] transition-transform duration-300">
+                  Click or Scroll to lock reservations instantly
+                </span>
+                <div className="w-5 h-8 border border-amber-400/30 group-hover/scroll:border-amber-400/80 rounded-full flex justify-center p-1 transition-colors">
+                  <motion.div
+                    animate={{
+                      y: [0, 8, 0],
+                    }}
+                    transition={{
+                      duration: 1.5,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                    }}
+                    className="w-1.5 h-2 bg-amber-400 rounded-full"
+                  />
+                </div>
+              </button>
             </div>
           </motion.div>
 
@@ -310,26 +374,29 @@ export default function VideoScrollHero({ onExploreClick, onJoinClick, appDarkMo
             className="w-full max-w-2xl flex flex-col items-center text-center"
           >
             {/* Premium Frosted Capsule */}
-            <div className="bg-slate-950/70 backdrop-blur-xl border border-white/10 rounded-2xl p-6 md:p-10 shadow-[0_24px_50px_rgba(0,0,0,0.6)] w-full hover:border-[#D4AF37]/30 transition-colors duration-300">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-500/10 backdrop-blur-md rounded-full border border-amber-400/50 mb-4">
+            <div className="bg-[#030308]/75 backdrop-blur-3xl border border-white/10 rounded-[2.25rem] p-8 md:p-11 shadow-[0_30px_70px_rgba(0,0,0,0.85),0_0_50px_rgba(245,158,11,0.03)] w-full hover:border-amber-400/30 transition-all duration-500 relative overflow-hidden group">
+              {/* Nolan Omura floating number watermark */}
+              <div className="absolute top-6 right-8 text-[7rem] font-serif italic text-white/[0.04] select-none font-medium leading-none pointer-events-none">03</div>
+
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-500/10 backdrop-blur-md rounded-full border border-amber-400/35 mb-5 relative z-10">
                 <Clock className="w-3.5 h-3.5 text-amber-400" />
                 <span className="text-[9.5px] font-mono text-amber-300 uppercase tracking-[0.25em] font-extrabold">
                   Verified Bookings & Real-Time Sync
                 </span>
               </div>
 
-              <h2 className="font-serif italic text-3xl md:text-4xl font-extrabold tracking-tight text-white leading-[1.12]">
+              <h2 className="font-serif italic text-3xl md:text-4xl font-extrabold tracking-tight text-white leading-[1.12] relative z-10">
                 Instant SLA Lock <br />
                 <span className="bg-gradient-to-r from-amber-200 via-amber-400 to-amber-600 bg-clip-text text-transparent font-medium">
                   Your Direct Parity Priority
                 </span>
               </h2>
 
-              <p className="text-xs md:text-sm text-slate-200 font-sans max-w-xl mx-auto leading-relaxed mt-4 font-light">
+              <p className="text-xs md:text-sm text-slate-300 font-sans max-w-xl mx-auto leading-relaxed mt-5 font-light relative z-10">
                 Bypass double-booking frustrations and crowded waiting lobbies. Select your preferred slot, reserve directly with complete calendar accuracy, and step right into therapeutic bliss.
               </p>
 
-              <div className="pt-6 flex flex-col sm:flex-row items-center gap-3 justify-center">
+              <div className="pt-8 flex flex-col sm:flex-row items-center gap-3 justify-center relative z-10">
                 <button
                   onClick={() => {
                     const target = document.getElementById('discovery_lounge_anchor');
@@ -337,7 +404,7 @@ export default function VideoScrollHero({ onExploreClick, onJoinClick, appDarkMo
                       target.scrollIntoView({ behavior: 'smooth' });
                     }
                   }}
-                  className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-amber-400 to-[#D4AF37] hover:from-amber-300 hover:to-amber-500 text-slate-950 text-xs uppercase font-extrabold tracking-widest rounded-xl hover:scale-105 active:scale-98 transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-amber-400/20"
+                  className="w-full sm:w-auto px-8 py-4.5 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-white hover:to-white text-slate-950 text-xs uppercase font-extrabold tracking-widest rounded-full hover:scale-105 active:scale-98 transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-amber-400/10 noomo-magnetic"
                 >
                   Enter Discovery Lounge Deck <ArrowRight className="w-4 h-4 animate-pulse" />
                 </button>

@@ -191,22 +191,57 @@ const INITIAL_SALONS = [
 
 // Seed raw database with mock data if not existing
 const loadDB = () => {
+  const defaultTestimonials = [
+    { id: "t1", name: "Kritika Hegde", role: "Vogue BLR Contributor", quote: "The Japanese Head Spa at Crown & Coat is pure, unadulterated high-end relaxation. GlamBlr has completely revolutionized how I book my weekend self-care routines.", avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=100", area: "Whitefield", rating: 5 },
+    { id: "t2", name: "Sameer Sen", role: "Indiranagar Resident", quote: "I booked the Sandalwood Shave at Gilded Groom. The coordinates were perfect, verification was seamless, and the single-malt coffee was amazing. Best luxury lounge platform.", avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=100", area: "Indiranagar", rating: 5 },
+    { id: "t3", name: "Priyanka Pai", role: "Mehendi Artist", quote: "Secured my bridal gold session through Maison de l’Or on GlamBlr. The 98% compatibility match from the DNA quiz was scarily accurate. Highly recommended!", avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=100", area: "Jayanagar", rating: 5 }
+  ];
+
+  const defaultCredentials = {
+    "1": "shop1",
+    "2": "shop2",
+    "3": "shop3",
+    "4": "shop4",
+    "5": "shop5",
+    "6": "shop6"
+  };
+
   if (!fs.existsSync(DB_PATH)) {
     const data = {
       salons: INITIAL_SALONS,
-      bookings: []
+      bookings: [],
+      testimonials: defaultTestimonials,
+      quizResults: [],
+      credentials: defaultCredentials
     };
     fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2), "utf-8");
     return data;
   }
   try {
     const raw = fs.readFileSync(DB_PATH, "utf-8");
-    return JSON.parse(raw);
+    const data = JSON.parse(raw);
+    
+    // Auto-migrate old generic salon lists to luxury catalog
+    if (!data.salons || data.salons.length === 0 || (data.salons[0] && data.salons[0].name === "Luxe Hair Studio")) {
+      data.salons = INITIAL_SALONS;
+    }
+
+    if (!data.bookings) data.bookings = [];
+    if (!data.testimonials || data.testimonials.length === 0) data.testimonials = defaultTestimonials;
+    if (!data.quizResults) data.quizResults = [];
+    if (!data.credentials) data.credentials = defaultCredentials;
+
+    // Save upgraded structure back
+    fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2), "utf-8");
+    return data;
   } catch (err) {
     console.error("Database read error, recreating", err);
     const data = {
       salons: INITIAL_SALONS,
-      bookings: []
+      bookings: [],
+      testimonials: defaultTestimonials,
+      quizResults: [],
+      credentials: defaultCredentials
     };
     fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2), "utf-8");
     return data;
@@ -357,6 +392,39 @@ app.delete("/api/salons/:id", async (req, res) => {
   res.json({ success: true });
 });
 
+// Update an existing salon (Open hours, Description, Specialties, Services, Offers)
+app.put("/api/salons/:id", async (req, res) => {
+  const { id } = req.params;
+  const db = loadDB();
+  const index = db.salons.findIndex((s: any) => s.id === id);
+  if (index === -1) {
+    return res.status(404).json({ error: "Salon not found" });
+  }
+
+  // Overwrite specific modified parameters
+  db.salons[index] = {
+    ...db.salons[index],
+    ...req.body
+  };
+  saveDB(db);
+
+  // Sync to Supabase cloud if active
+  if (supabase) {
+    try {
+      const { error } = await supabase.from("salons").upsert(db.salons[index]);
+      if (error) {
+        console.warn("[Supabase Sync Put Salon Warning]", error.message);
+      } else {
+        console.log("[Supabase Sync] Salon updated on Cloud DB:", db.salons[index].name);
+      }
+    } catch (err: any) {
+      console.error("[Supabase Sync Put Salon Error]", err.message);
+    }
+  }
+
+  res.json({ success: true, salon: db.salons[index] });
+});
+
 // Active Bookings list
 app.get("/api/bookings", async (req, res) => {
   const db = loadDB();
@@ -468,6 +536,181 @@ app.delete("/api/bookings/:id", async (req, res) => {
   }
 
   res.json({ success: true });
+});
+
+
+// -------------------------------------------------------------
+// VERIFIED TESTIMONIALS ENDPOINTS (DYNAMICAL DATABASE INTEGRATED)
+// -------------------------------------------------------------
+app.get("/api/testimonials", async (req, res) => {
+  const db = loadDB();
+
+  // Try reading from Supabase table if active
+  if (supabase) {
+    try {
+      const { data, error } = await supabase.from("testimonials").select("*").order("id", { ascending: false });
+      if (!error && data && data.length > 0) {
+        db.testimonials = data;
+        saveDB(db);
+        return res.json(data);
+      }
+    } catch (e) {
+      console.warn("[Supabase Testimonials Sync Check Fallback]");
+    }
+  }
+
+  res.json(db.testimonials || []);
+});
+
+app.post("/api/testimonials", async (req, res) => {
+  const { name, role, quote, avatar, area, rating } = req.body;
+  if (!name || !quote) {
+    return res.status(400).json({ error: "Author Name and Quote text are required." });
+  }
+
+  const db = loadDB();
+  const newTestimonial = {
+    id: String(Date.now()),
+    name,
+    role: role || "Verified Guest",
+    quote,
+    avatar: avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=100",
+    area: area || "Bengaluru",
+    rating: Number(rating) || 5
+  };
+
+  if (!db.testimonials) db.testimonials = [];
+  db.testimonials.unshift(newTestimonial);
+  saveDB(db);
+
+  // Sync to Supabase Cloud
+  if (supabase) {
+    try {
+      await supabase.from("testimonials").upsert(newTestimonial);
+    } catch (err: any) {
+      console.warn("[Supabase Sync Testimonials Warning]", err.message);
+    }
+  }
+
+  res.json({ success: true, testimonial: newTestimonial });
+});
+
+app.delete("/api/testimonials/:id", async (req, res) => {
+  const { id } = req.params;
+  const db = loadDB();
+  if (db.testimonials) {
+    db.testimonials = db.testimonials.filter((t: any) => t.id !== id);
+    saveDB(db);
+  }
+
+  // Delete from Supabase
+  if (supabase) {
+    try {
+      await supabase.from("testimonials").delete().eq("id", id);
+    } catch (err: any) {
+      console.warn("[Supabase Testimonials Delete Alert]", err.message);
+    }
+  }
+
+  res.json({ success: true });
+});
+
+
+// -------------------------------------------------------------
+// STYLE QUIZ SUBMISSIONS / DNA AUDITS ENDPOINTS (FULL DATABASE BACKED)
+// -------------------------------------------------------------
+app.get("/api/quiz-results", async (req, res) => {
+  const db = loadDB();
+
+  // Try reading from Supabase if connected
+  if (supabase) {
+    try {
+      const { data, error } = await supabase.from("quiz_results").select("*").order("id", { ascending: false });
+      if (!error && data) {
+        db.quizResults = data;
+        saveDB(db);
+        return res.json(data);
+      }
+    } catch (e) {
+      console.warn("[Supabase Quiz Results Sync Fallback]");
+    }
+  }
+
+  res.json(db.quizResults || []);
+});
+
+app.post("/api/quiz-results", async (req, res) => {
+  const { title, description, vibe, concern, budget, area, matchedSalons } = req.body;
+  const db = loadDB();
+  const newSubmission = {
+    id: String(Date.now()) + Math.floor(Math.random() * 100),
+    title: title || "Glow Devotee",
+    description: description || "Analyzing custom style parameters...",
+    vibe: vibe || "Natural Glow",
+    concern: concern || "Damage repair",
+    budget: budget || "₹₹₹",
+    area: area || "Anywhere",
+    matchedSalons: matchedSalons || [],
+    timestamp: new Date().toISOString()
+  };
+
+  if (!db.quizResults) db.quizResults = [];
+  db.quizResults.unshift(newSubmission);
+  saveDB(db);
+
+  // Sync to Supabase
+  if (supabase) {
+    try {
+      await supabase.from("quiz_results").insert(newSubmission);
+    } catch (err: any) {
+      console.warn("[Supabase Quiz Results Sync Insertion Warning]", err.message);
+    }
+  }
+
+  res.json({ success: true, result: newSubmission });
+});
+
+app.delete("/api/quiz-results/:id", async (req, res) => {
+  const { id } = req.params;
+  const db = loadDB();
+  if (db.quizResults) {
+    db.quizResults = db.quizResults.filter((q: any) => q.id !== id);
+    saveDB(db);
+  }
+
+  // Delete from Supabase
+  if (supabase) {
+    try {
+      await supabase.from("quiz_results").delete().eq("id", id);
+    } catch (err: any) {
+      console.warn("[Supabase Quiz Result Sync Delete Warning]", err.message);
+    }
+  }
+
+  res.json({ success: true });
+});
+
+
+// -------------------------------------------------------------
+// SECURE SHOP PASSWORD / CREDENTIALS MANAGEMENT
+// -------------------------------------------------------------
+app.get("/api/credentials", (req, res) => {
+  const db = loadDB();
+  res.json(db.credentials || {});
+});
+
+app.post("/api/credentials", (req, res) => {
+  const { salonId, password } = req.body;
+  if (!salonId || !password) {
+    return res.status(400).json({ error: "salonId and password parameters are required." });
+  }
+
+  const db = loadDB();
+  if (!db.credentials) db.credentials = {};
+  db.credentials[salonId] = password;
+  saveDB(db);
+
+  res.json({ success: true, credentials: db.credentials });
 });
 
 
