@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Sparkles, Compass, MapPin, Smile, Flame, Play, ArrowRight, Heart, Award, CalendarCheck, Circle as HelpCircle, Star, Quote, RefreshCw } from 'lucide-react';
+import { Sparkles, Compass, MapPin, Smile, Flame, Play, ArrowRight, Heart, Award, CalendarCheck, HelpCircle, Star, Quote, RefreshCw } from 'lucide-react';
 
 // Core imports
 import { Salon, Service, Booking } from './types';
@@ -30,6 +30,8 @@ export default function App() {
   // Real-time server-synced parameters
   const [salons, setSalons] = useState<Salon[]>(LUX_SALONS);
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [isAdminPortalOpen, setIsAdminPortalOpen] = useState(false);
+  
   // Custom global light/dark theme toggle
   const [appDarkMode, setAppDarkMode] = useState<boolean>(() => {
     try {
@@ -75,9 +77,6 @@ export default function App() {
   const [heroSearchArea, setHeroSearchArea] = useState('All');
   const [heroSearchService, setHeroSearchService] = useState('All');
   const [heroSearchPrice, setHeroSearchPrice] = useState('All');
-
-  // Admin portal auth state
-  const [isAdminPortalOpen, setIsAdminPortalOpen] = useState(false);
 
   // Public application configuration variables loaded securely from fullstack backend
   const [appConfig, setAppConfig] = useState<any>({
@@ -313,9 +312,9 @@ export default function App() {
                       className="bg-white dark:bg-[#1C1C2D] border border-[#E1DBCE] dark:border-indigo-950/80 hover:border-[#A07D1A] dark:hover:border-amber-400 rounded-lg p-2.5 text-xs text-slate-800 dark:text-slate-200 focus:outline-none transition-all cursor-pointer"
                     >
                       <option value="All" className="text-slate-800 dark:bg-[#12121E]">All Budgets</option>
-                      <option value="$" className="text-slate-800 dark:bg-[#12121E]">Signature ($)</option>
-                      <option value="$$" className="text-slate-800 dark:bg-[#12121E]">Premium ($$)</option>
-                      <option value="$$" className="text-slate-800 dark:bg-[#12121E]">Ultra Luxury ($$)</option>
+                      <option value="₹₹" className="text-slate-800 dark:bg-[#12121E]">Signature (₹₹)</option>
+                      <option value="₹₹₹" className="text-slate-800 dark:bg-[#12121E]">Premium (₹₹₹)</option>
+                      <option value="₹₹₹₹" className="text-slate-800 dark:bg-[#12121E]">Ultra Luxury (₹₹₹₹)</option>
                     </select>
                   </div>
 

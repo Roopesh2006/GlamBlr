@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { X, Shield, Users, Store, Send, CircleCheck as CheckCircle2, Trash2, CalendarCheck, Circle as HelpCircle, RefreshCw, KeyRound, ArrowRight, Sparkles, Navigation, Plus, DollarSign, Clock, Image, Tag, CreditCard as Edit3, Save, Phone, Mail, MapPin as MapPinIcon } from 'lucide-react';
-import { Salon, Booking, Service, Offer } from '../types';
+import { X, Shield, Users, Store, Send, CheckCircle2, Trash2, CalendarCheck, HelpCircle, RefreshCw, KeyRound, ArrowRight, Sparkles, Navigation, Plus, DollarSign, Clock } from 'lucide-react';
+import { Salon, Booking, Service } from '../types';
 
 interface AdminPortalProps {
   isOpen: boolean;
@@ -31,42 +31,54 @@ export default function AdminPortal({
   const [joinOwnerName, setJoinOwnerName] = useState('');
   const [joinContact, setJoinContact] = useState('');
   const [joinArea, setJoinArea] = useState('Indiranagar');
-  const [joinPrice, setJoinPrice] = useState('$$$');
+  const [joinPrice, setJoinPrice] = useState('₹₹₹');
   const [joinServices, setJoinServices] = useState('');
   const [joinDescription, setJoinDescription] = useState('');
 
-  // Shop Owner states
+  // Shop Owner Login states
   const [ownerSelectedSalonId, setOwnerSelectedSalonId] = useState('');
   const [ownerPassword, setOwnerPassword] = useState('');
   const [isOwnerAuthenticated, setIsOwnerAuthenticated] = useState(false);
   const [ownerSalon, setOwnerSalon] = useState<Salon | null>(null);
-  const [ownerEditMode, setOwnerEditMode] = useState(false);
-  const [editedSalon, setEditedSalon] = useState<Salon | null>(null);
-  const [newImageUrl, setNewImageUrl] = useState('');
-  const [newOffer, setNewOffer] = useState<Partial<Offer>>({
-    title: '', description: '', discountPercent: 10, validUntil: '', code: '', isActive: true
-  });
-  const [showAddOffer, setShowAddOffer] = useState(false);
 
-  // Admin states
+  // Admin Login states
   const [adminUsername, setAdminUsername] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
 
-  // Create Salon states
+  // Supabase states
+  const [supabaseStatus, setSupabaseStatus] = useState<any>(null);
+
+  const fetchSupabaseStatus = async () => {
+    try {
+      const res = await fetch('/api/supabase-status');
+      if (res.ok) {
+        const data = await res.json();
+        setSupabaseStatus(data);
+      }
+    } catch (e) {
+      console.error("Failed to query Supabase status:", e);
+    }
+  };
+
+  useEffect(() => {
+    if (isOpen && activeTab === 'admin' && isAdminAuthenticated) {
+      fetchSupabaseStatus();
+    }
+  }, [isOpen, activeTab, isAdminAuthenticated]);
+
+  // Create Salon input states
   const [newSalonName, setNewSalonName] = useState('');
   const [newSalonArea, setNewSalonArea] = useState<'Indiranagar' | 'Koramangala' | 'Whitefield' | 'Jayanagar' | 'HSR Layout' | 'Banaswadi'>('Indiranagar');
-  const [newSalonPrice, setNewSalonPrice] = useState<'$$' | '$$$' | '$$$$'>('$$$');
+  const [newSalonPrice, setNewSalonPrice] = useState<'₹₹' | '₹₹₹' | '₹₹₹₹'>('₹₹₹');
   const [newSalonHours, setNewSalonHours] = useState('09:00 AM - 09:00 PM');
   const [newSalonSpecs, setNewSalonSpecs] = useState('');
   const [newSalonDescription, setNewSalonDescription] = useState('');
   const [newSalonServicesText, setNewSalonServicesText] = useState(`Haircut & Styling | 1500 | 45 mins | Grooming\nLuxury Gold Facials | 6000 | 75 mins | Skin`);
-  const [newSalonPhone, setNewSalonPhone] = useState('');
-  const [newSalonEmail, setNewSalonEmail] = useState('');
-  const [newSalonAddress, setNewSalonAddress] = useState('');
 
   useEffect(() => {
     if (isOpen) {
+      // Keep state clean on open
       setJoinShopName('');
       setJoinOwnerName('');
       setJoinContact('');
@@ -77,8 +89,6 @@ export default function AdminPortal({
       setOwnerSelectedSalonId(salons[0]?.id || '');
       setIsOwnerAuthenticated(false);
       setOwnerSalon(null);
-      setOwnerEditMode(false);
-      setEditedSalon(null);
 
       setAdminUsername('');
       setAdminPassword('');
@@ -86,6 +96,7 @@ export default function AdminPortal({
     }
   }, [isOpen, salons]);
 
+  // Handle WhatsApp join form redirect redirection to Simulate elegant "Google Form" submission
   const handleJoinSubmitWhatsapp = (e: React.FormEvent) => {
     e.preventDefault();
     if (!joinShopName || !joinOwnerName || !joinContact) {
@@ -94,34 +105,37 @@ export default function AdminPortal({
     }
 
     const compiledMessage = `Hello GlamBlr Platform! I'd love to list my luxury lounge on your marketplace.\n\n` +
-      `SHOP NAME: ${joinShopName}\n` +
-      `OWNER/REPRESENTATIVE: ${joinOwnerName}\n` +
-      `CONTACT PHONE: ${joinContact}\n` +
-      `SECTOR AREA: ${joinArea}\n` +
-      `PRICING ESTIMATE: ${joinPrice}\n` +
-      `PREMIUM SERVICES: ${joinServices || "Luxury Grooming, Balayage, Facials"}\n` +
-      `DESIGN CONCEPT & HISTORY: ${joinDescription || "A high-end styling lounge."}`;
+      `✦ SHOP NAME: ${joinShopName}\n` +
+      `✦ OWNER/REPRESENTATIVE: ${joinOwnerName}\n` +
+      `✦ CONTACT PHONE: ${joinContact}\n` +
+      `✦ SECTOR AREA: ${joinArea}\n` +
+      `✦ PRICING ESTIMATE: ${joinPrice}\n` +
+      `✦ PREMIUM SERVICES: ${joinServices || "Luxury Grooming, Balayage, Facials"}\n` +
+      `✦ DESIGN CONCEPT & HISTORY: ${joinDescription || "A high-end styling lounge."}`;
 
+    // Target WhatsApp endpoint - open in new window
     const waUrl = `https://wa.me/${whatsappNumber.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(compiledMessage)}`;
     window.open(waUrl, '_blank');
   };
 
+  // Authenticate Shop Owner
   const handleOwnerAuthenticate = (e: React.FormEvent) => {
     e.preventDefault();
     const salon = salons.find(s => s.id === ownerSelectedSalonId);
     if (!salon) return;
 
+    // Direct password match (simple custom credential logic)
     const expectedPassword = "shop" + salon.id; 
     
     if (ownerPassword === "goldowner" || ownerPassword === expectedPassword || ownerPassword === "admin123") {
       setIsOwnerAuthenticated(true);
       setOwnerSalon(salon);
-      setEditedSalon({ ...salon });
     } else {
       alert(`Invalid credential code! For development, try: shop${salon.id} or admin123`);
     }
   };
 
+  // Authenticate Admin
   const handleAdminAuthenticate = (e: React.FormEvent) => {
     e.preventDefault();
     if ((adminUsername === 'admin' && adminPassword === 'goldadmin') || (adminUsername === 'admin' && adminPassword === 'admin123')) {
@@ -131,6 +145,7 @@ export default function AdminPortal({
     }
   };
 
+  // Create Salon Action (POSTs to backend)
   const handleCreateSalon = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newSalonName || !newSalonDescription) {
@@ -138,6 +153,7 @@ export default function AdminPortal({
       return;
     }
 
+    // Parse services out of line inputs
     const services: Service[] = [];
     try {
       const lines = newSalonServicesText.split("\n");
@@ -156,6 +172,7 @@ export default function AdminPortal({
       console.error("Failed to parse services text lines", err);
     }
 
+    // Specialties tags split
     const specialties = newSalonSpecs ? newSalonSpecs.split(",").map(s => s.trim()) : ["Boutique Styling"];
 
     try {
@@ -167,10 +184,7 @@ export default function AdminPortal({
         openHours: newSalonHours,
         specialties,
         services,
-        images: ["https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&q=80&w=800"],
-        phone: newSalonPhone,
-        email: newSalonEmail,
-        address: newSalonAddress
+        images: ["https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&q=80&w=800"]
       };
 
       const res = await fetch('/api/salons', {
@@ -181,13 +195,10 @@ export default function AdminPortal({
 
       if (!res.ok) throw new Error("Could not construct new salon coordinates");
       
-      alert(`Construct complete: ${newSalonName} is now registered on the live GlamBlr grid!`);
+      alert(`✦ Construct complete: ${newSalonName} is now registered on the live GlamBlr grid!`);
       setNewSalonName('');
       setNewSalonDescription('');
       setNewSalonSpecs('');
-      setNewSalonPhone('');
-      setNewSalonEmail('');
-      setNewSalonAddress('');
       onRefreshData();
     } catch (err) {
       console.error(err);
@@ -195,6 +206,7 @@ export default function AdminPortal({
     }
   };
 
+  // Delete Salon Command
   const handleDeleteSalon = async (id: string, name: string) => {
     if (!confirm(`Are you absolutely sure you want to remove ${name}? This will cascade delete its active bookings.`)) return;
     try {
@@ -207,6 +219,7 @@ export default function AdminPortal({
     }
   };
 
+  // Confirm / Complete / Cancel Booking status command
   const handleUpdateBookingStatus = async (id: string, status: string) => {
     try {
       const res = await fetch(`/api/bookings/${id}`, {
@@ -222,92 +235,15 @@ export default function AdminPortal({
     }
   };
 
-  const handleSaveSalonEdits = async () => {
-    if (!editedSalon) return;
-    
-    try {
-      const res = await fetch(`/api/salons/${editedSalon.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editedSalon)
-      });
-      
-      if (res.ok) {
-        setOwnerSalon(editedSalon);
-        setOwnerEditMode(false);
-        onRefreshData();
-        alert('Salon details updated successfully!');
-      } else {
-        throw new Error('Failed to update');
-      }
-    } catch (err) {
-      console.error(err);
-      alert('Update failed. Server may not support PUT on salons yet.');
-      // Fallback: update local state
-      setOwnerSalon(editedSalon);
-      setOwnerEditMode(false);
-    }
-  };
-
-  const handleAddImage = () => {
-    if (!newImageUrl.trim() || !editedSalon) return;
-    setEditedSalon({
-      ...editedSalon,
-      images: [...editedSalon.images, newImageUrl.trim()]
-    });
-    setNewImageUrl('');
-  };
-
-  const handleRemoveImage = (index: number) => {
-    if (!editedSalon) return;
-    const newImages = editedSalon.images.filter((_, i) => i !== index);
-    setEditedSalon({ ...editedSalon, images: newImages });
-  };
-
-  const handleAddOffer = () => {
-    if (!newOffer.title || !newOffer.code || !editedSalon) return;
-    const offer: Offer = {
-      id: `offer-${Date.now()}`,
-      title: newOffer.title,
-      description: newOffer.description || '',
-      discountPercent: newOffer.discountPercent || 10,
-      validUntil: newOffer.validUntil || '2026-12-31',
-      code: newOffer.code,
-      isActive: true
-    };
-    setEditedSalon({
-      ...editedSalon,
-      offers: [...(editedSalon.offers || []), offer]
-    });
-    setNewOffer({ title: '', description: '', discountPercent: 10, validUntil: '', code: '', isActive: true });
-    setShowAddOffer(false);
-  };
-
-  const handleToggleOffer = (offerId: string) => {
-    if (!editedSalon) return;
-    setEditedSalon({
-      ...editedSalon,
-      offers: (editedSalon.offers || []).map(o => 
-        o.id === offerId ? { ...o, isActive: !o.isActive } : o
-      )
-    });
-  };
-
-  const handleDeleteOffer = (offerId: string) => {
-    if (!editedSalon) return;
-    setEditedSalon({
-      ...editedSalon,
-      offers: (editedSalon.offers || []).filter(o => o.id !== offerId)
-    });
-  };
-
+  // Owner bookings filter
   const ownerBookings = useMemo(() => {
     if (!ownerSalon) return [];
     return bookings.filter(b => b.salonId === ownerSalon.id);
   }, [bookings, ownerSalon]);
 
+  // Owner finances metrics
   const ownerRevenue = useMemo(() => {
-    return ownerBookings.reduce((sum, b) => b.status === 'confirmed' || b.status === 'completed' ? sum + b.service.price : sum, 0);
+    return ownerBookings.reduce((sum, b) => b.status === 'confirmed' ? sum + b.service.price : sum, 0);
   }, [ownerBookings]);
 
   if (!isOpen) return null;
@@ -315,8 +251,10 @@ export default function AdminPortal({
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       
-      <div className="bg-white dark:bg-[#12121E] border border-[#E1DBCE] dark:border-indigo-950/60 rounded-2xl w-full max-w-5xl h-[90vh] md:h-[85vh] flex flex-col overflow-hidden text-left shadow-2xl relative scale-in">
+      {/* Container Card */}
+      <div className="bg-white dark:bg-[#12121E] border border-[#E1DBCE] dark:border-indigo-950/60 rounded-2xl w-full max-w-4xl h-[90vh] md:h-[82vh] flex flex-col overflow-hidden text-left shadow-2xl relative scale-in">
         
+        {/* Absolute exit button */}
         <button
           onClick={onClose}
           className="absolute top-4 right-4 z-50 p-1.5 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-500 dark:text-slate-300 transition-colors cursor-pointer"
@@ -324,6 +262,7 @@ export default function AdminPortal({
           <X className="w-5 h-5" />
         </button>
 
+        {/* Top bar Navigator Tabs */}
         <div className="flex bg-[#FAF6F0] dark:bg-[#161625] border-b border-[#E1DBCE] dark:border-indigo-950/50 shrink-0">
           
           <button
@@ -363,8 +302,10 @@ export default function AdminPortal({
           </button>
         </div>
 
+        {/* Scrollable central content */}
         <div className="flex-1 overflow-y-auto p-6 md:p-8">
 
+          {/* TAB 1: JOIN AS PARTNER (GFORM WHATSAPP REDIRECT or TALLY EMBED) */}
           {activeTab === 'join' && (
             <div className="space-y-6 max-w-2xl mx-auto">
               <div className="text-center space-y-2">
@@ -379,6 +320,7 @@ export default function AdminPortal({
                 </p>
               </div>
 
+              {/* Tally & WhatsApp toggle selector buttons */}
               {tallyFormId && (
                 <div className="flex border border-[#E1DBCE] dark:border-indigo-950/60 p-1 justify-between gap-1 max-w-xs mx-auto mb-6 rounded-xl bg-neutral-50 dark:bg-neutral-900/50">
                   <button
@@ -468,9 +410,9 @@ export default function AdminPortal({
                       onChange={(e) => setJoinPrice(e.target.value)}
                       className="w-full bg-[#FAF7F2] dark:bg-[#161625] border border-[#E1DBCE] dark:border-indigo-950 px-3 py-2.5 text-xs rounded-lg focus:outline-none text-slate-800 dark:text-slate-100"
                     >
-                      <option value="$$">Signature Standard ($$)</option>
-                      <option value="$$$">Premium Luxury ($$$)</option>
-                      <option value="$$$$">Ultra Prestige Elite ($$$$)</option>
+                      <option value="₹₹">Signature Standard (₹₹)</option>
+                      <option value="₹₹₹">Premium Luxury (₹₹ showcase)</option>
+                      <option value="₹₹₹₹">Ultra Prestige Elite (₹₹₹₹ master)</option>
                     </select>
                   </div>
 
@@ -491,7 +433,7 @@ export default function AdminPortal({
                       rows={2.5}
                       value={joinDescription}
                       onChange={(e) => setJoinDescription(e.target.value)}
-                      placeholder="Describe your design aesthetics, premium brands you carry (e.g., Dyson, Chanel, Kerastase), and floor architecture..."
+                      placeholder="Describe your design aesthetics, premium brands you carry (e.g., Dyson, Chanel, Kérastase), and floor architecture..."
                       className="w-full bg-[#FAF7F2] dark:bg-[#161625] border border-[#E1DBCE] dark:border-indigo-950 px-3 py-2 text-xs rounded-lg focus:outline-none focus:border-[#A07D1A] text-slate-800 dark:text-slate-100"
                     />
                   </div>
@@ -517,6 +459,7 @@ export default function AdminPortal({
             </div>
           )}
 
+          {/* TAB 2: SHOP OWNERS RESERVATION PORT */}
           {activeTab === 'owner' && (
             <div className="space-y-6">
               {!isOwnerAuthenticated ? (
@@ -530,6 +473,20 @@ export default function AdminPortal({
                   </div>
 
                   <div className="space-y-3.5 bg-white dark:bg-[#161625] border border-[#E1DBCE] dark:border-indigo-950/45 p-6 rounded-xl">
+                    <div className="bg-amber-500/10 dark:bg-amber-500/5 border border-[#D4AF37]/30 p-3 rounded-lg text-left space-y-1">
+                      <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-amber-600 dark:text-amber-500 block">🏆 Hackathon Judge Credentials Help</span>
+                      <p className="text-[11px] text-slate-600 dark:text-slate-400">
+                        Select any Salon above and use PIN: <code className="bg-[#FAF7F2] dark:bg-[#12121E] px-1 py-0.5 rounded font-mono font-bold text-amber-600 dark:text-amber-400">admin123</code>
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setOwnerPassword("admin123")}
+                        className="text-[10px] text-[#A07D1A] dark:text-amber-400 hover:underline font-mono font-bold block mt-1 cursor-pointer"
+                      >
+                        ⚡ Auto-Fill Judge PIN
+                      </button>
+                    </div>
+
                     <div className="space-y-1.5">
                       <label className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 block text-left">Select My Salon Location</label>
                       <select
@@ -572,7 +529,7 @@ export default function AdminPortal({
                     <div>
                       <span className="text-[9px] font-mono text-amber-500 dark:text-amber-400 tracking-widest uppercase font-black">Secure Lounge Portal</span>
                       <h4 className="font-serif italic text-xl font-bold text-slate-800 dark:text-white mt-0.5">{ownerSalon?.name}</h4>
-                      <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">{ownerSalon?.area} coordinate line - {ownerSalon?.openHours}</p>
+                      <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">📍 {ownerSalon?.area} coordinate line • {ownerSalon?.openHours}</p>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4 text-left sm:text-right shrink-0">
@@ -582,345 +539,80 @@ export default function AdminPortal({
                       </div>
                       <div className="bg-white/60 dark:bg-black/30 border border-slate-200/50 dark:border-neutral-800 p-2.5 rounded-lg">
                         <span className="text-[8.5px] font-mono text-slate-400 block whitespace-nowrap">Parly Revenue</span>
-                        <span className="text-sm font-bold text-emerald-500">Rs.{ownerRevenue.toLocaleString()}</span>
+                        <span className="text-sm font-bold text-emerald-500">₹{ownerRevenue.toLocaleString()}</span>
                       </div>
                     </div>
                   </div>
 
-                  {/* Salon Management Tabs */}
-                  <div className="flex gap-2 border-b border-[#E1DBCE] dark:border-indigo-950/40 pb-2">
-                    <button
-                      onClick={() => { setOwnerEditMode(false); }}
-                      className={`px-3 py-1.5 text-[10px] font-mono uppercase tracking-wider font-extrabold rounded-lg transition-all ${!ownerEditMode ? 'bg-[#A07D1A] text-white' : 'text-slate-500 hover:text-[#A07D1A]'}`}
-                    >
-                      Bookings
-                    </button>
-                    <button
-                      onClick={() => { setOwnerEditMode(true); setEditedSalon(ownerSalon ? { ...ownerSalon } : null); }}
-                      className={`px-3 py-1.5 text-[10px] font-mono uppercase tracking-wider font-extrabold rounded-lg transition-all ${ownerEditMode ? 'bg-[#A07D1A] text-white' : 'text-slate-500 hover:text-[#A07D1A]'}`}
-                    >
-                      Edit Profile & Offers
-                    </button>
-                  </div>
-
-                  {!ownerEditMode ? (
-                    <div className="space-y-3 text-left">
-                      <h5 className="font-serif italic font-bold text-sm text-[#1E1A17] dark:text-white">Active Queue Logs</h5>
-                      
-                      <div className="border border-[#E1DBCE] dark:border-indigo-950/45 rounded-xl overflow-hidden bg-white dark:bg-[#12121E]">
-                        <table className="w-full text-xs font-sans min-w-[550px]">
-                          <thead className="bg-[#FAF6F0] dark:bg-[#161625] border-b border-[#E1DBCE] dark:border-indigo-950/45 text-[10px] font-mono font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 text-left">
-                            <tr>
-                              <th className="p-3">Customer Code</th>
-                              <th className="p-3">Schedule</th>
-                              <th className="p-3">Service Code / Category</th>
-                              <th className="p-3">Contact</th>
-                              <th className="p-3">Pricing</th>
-                              <th className="p-3">Status Action</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-[#E1DBCE]/60 dark:divide-indigo-950/30 text-slate-700 dark:text-slate-300">
-                            {ownerBookings.map((b) => (
-                              <tr key={b.id} className="hover:bg-slate-50/50 dark:hover:bg-indigo-950/10">
-                                <td className="p-3 font-semibold text-slate-900 dark:text-white">{b.customerName}</td>
-                                <td className="p-3 font-medium">
-                                  <div className="font-mono text-[10.5px] font-semibold text-[#A07D1A] dark:text-amber-400">{b.time}</div>
-                                  <div className="text-[9.5px] text-slate-400">{b.date}</div>
-                                </td>
-                                <td className="p-3">
-                                  <div>{b.service.name}</div>
-                                  <span className="px-1.5 py-0.5 mt-1 inline-block bg-slate-100 dark:bg-indigo-950/30 text-slate-500 dark:text-slate-400 text-[8.5px] font-mono font-bold uppercase rounded">
-                                    {b.service.category} - {b.service.duration}
+                  {/* Partner bookings table */}
+                  <div className="space-y-3 text-left">
+                    <h5 className="font-serif italic font-bold text-sm text-[#1E1A17] dark:text-white">Active Queue Logs</h5>
+                    
+                    <div className="border border-[#E1DBCE] dark:border-indigo-950/45 rounded-xl overflow-hidden bg-white dark:bg-[#12121E]">
+                      <table className="w-full text-xs font-sans min-w-[550px]">
+                        <thead className="bg-[#FAF6F0] dark:bg-[#161625] border-b border-[#E1DBCE] dark:border-indigo-950/45 text-[10px] font-mono font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 text-left">
+                          <tr>
+                            <th className="p-3">Customer Code</th>
+                            <th className="p-3">Schedule</th>
+                            <th className="p-3">Service Code / Category</th>
+                            <th className="p-3">Contact</th>
+                            <th className="p-3">Pricing</th>
+                            <th className="p-3">Status Action</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-[#E1DBCE]/60 dark:divide-indigo-950/30 text-slate-700 dark:text-slate-300">
+                          {ownerBookings.map((b) => (
+                            <tr key={b.id} className="hover:bg-slate-50/50 dark:hover:bg-indigo-950/10">
+                              <td className="p-3 font-semibold text-slate-900 dark:text-white">{b.customerName}</td>
+                              <td className="p-3 font-medium">
+                                <div className="font-mono text-[10.5px] font-semibold text-[#A07D1A] dark:text-amber-400">{b.time}</div>
+                                <div className="text-[9.5px] text-slate-400">{b.date}</div>
+                              </td>
+                              <td className="p-3">
+                                <div>{b.service.name}</div>
+                                <span className="px-1.5 py-0.5 mt-1 inline-block bg-slate-100 dark:bg-indigo-950/30 text-slate-500 dark:text-slate-400 text-[8.5px] font-mono font-bold uppercase rounded">
+                                  {b.service.category} • {b.service.duration}
+                                </span>
+                              </td>
+                              <td className="p-3 font-mono text-[10px]">{b.customerPhone}</td>
+                              <td className="p-3 font-mono font-bold text-slate-900 dark:text-white">₹{b.service.price}</td>
+                              <td className="p-3">
+                                {b.status === 'confirmed' ? (
+                                  <div className="flex items-center gap-1.5">
+                                    <button
+                                      onClick={() => handleUpdateBookingStatus(b.id, 'completed')}
+                                      className="px-2.5 py-1.5 bg-[#FAF7F2] hover:bg-[#A07D1A]/5 text-[#A07D1A] dark:text-amber-400 dark:bg-emerald-900/10 dark:text-emerald-300 border border-[#D4AF37]/35 dark:border-emerald-500/20 text-[9px] uppercase font-bold rounded cursor-pointer leading-none hover:scale-103 transition-transform"
+                                    >
+                                      ✓ Complete
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <span className="px-2 py-1 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 rounded text-[9px] font-mono font-black uppercase">
+                                    🔴 Closed / Complete
                                   </span>
-                                </td>
-                                <td className="p-3 font-mono text-[10px]">{b.customerEmail}</td>
-                                <td className="p-3 font-mono font-bold text-slate-900 dark:text-white">Rs.{b.service.price}</td>
-                                <td className="p-3">
-                                  {b.status === 'confirmed' ? (
-                                    <div className="flex items-center gap-1.5">
-                                      <button
-                                        onClick={() => handleUpdateBookingStatus(b.id, 'completed')}
-                                        className="px-2.5 py-1.5 bg-[#FAF7F2] hover:bg-[#A07D1A]/5 text-[#A07D1A] dark:text-amber-400 dark:bg-emerald-900/10 border border-[#D4AF37]/35 text-[9px] uppercase font-bold rounded cursor-pointer leading-none hover:scale-103 transition-transform"
-                                      >
-                                        Complete
-                                      </button>
-                                      <button
-                                        onClick={() => handleUpdateBookingStatus(b.id, 'cancelled')}
-                                        className="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-500 border border-rose-200 text-[8px] uppercase font-bold rounded cursor-pointer"
-                                      >
-                                        Cancel
-                                      </button>
-                                    </div>
-                                  ) : b.status === 'completed' ? (
-                                    <span className="px-2 py-1 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 rounded text-[9px] font-mono font-black uppercase">
-                                      Completed
-                                    </span>
-                                  ) : (
-                                    <span className="px-2 py-1 bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30 rounded text-[9px] font-mono font-black uppercase">
-                                      Cancelled
-                                    </span>
-                                  )}
-                                </td>
-                              </tr>
-                            ))}
+                                )}
+                              </td>
+                            </tr>
+                          ))}
 
-                            {ownerBookings.length === 0 && (
-                              <tr>
-                                <td colSpan={6} className="p-8 text-center text-slate-400 font-mono text-xs">
-                                  No active reservation files booked for your lounge coordinates today.
-                                </td>
-                              </tr>
-                            )}
-                          </tbody>
-                        </table>
-                      </div>
+                          {ownerBookings.length === 0 && (
+                            <tr>
+                              <td colSpan={6} className="p-8 text-center text-slate-400 font-mono text-xs">
+                                No active reservation files booked for your lounge coordinates today.
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
                     </div>
-                  ) : (
-                    <div className="space-y-6">
-                      {editedSalon && (
-                        <>
-                          {/* Edit Basic Info */}
-                          <div className="bg-white dark:bg-[#161625] border border-[#E1DBCE] dark:border-indigo-950/45 rounded-xl p-5 space-y-4">
-                            <div className="flex items-center justify-between">
-                              <h5 className="font-serif italic font-bold text-sm text-[#1E1A17] dark:text-white flex items-center gap-1.5">
-                                <Edit3 className="w-4 h-4 text-[#A07D1A]" /> Edit Salon Details
-                              </h5>
-                              <button
-                                onClick={handleSaveSalonEdits}
-                                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] uppercase font-extrabold tracking-wider rounded-lg cursor-pointer transition-all flex items-center gap-1"
-                              >
-                                <Save className="w-3.5 h-3.5" /> Save Changes
-                              </button>
-                            </div>
+                  </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                              <div className="space-y-1">
-                                <label className="text-[9px] font-mono font-bold uppercase text-slate-400">Salon Name</label>
-                                <input
-                                  type="text"
-                                  value={editedSalon.name}
-                                  onChange={(e) => setEditedSalon({ ...editedSalon, name: e.target.value })}
-                                  className="w-full bg-[#FAF7F2] dark:bg-[#12121E] border border-[#E1DBCE] px-3 py-1.5 text-xs rounded-lg"
-                                />
-                              </div>
-                              <div className="space-y-1">
-                                <label className="text-[9px] font-mono font-bold uppercase text-slate-400">Area</label>
-                                <select
-                                  value={editedSalon.area}
-                                  onChange={(e) => setEditedSalon({ ...editedSalon, area: e.target.value as any })}
-                                  className="w-full bg-[#FAF7F2] dark:bg-[#12121E] border border-[#E1DBCE] px-3 py-1.5 text-xs rounded-lg"
-                                >
-                                  {['Indiranagar', 'Koramangala', 'Whitefield', 'Jayanagar', 'HSR Layout', 'Banaswadi'].map(a => (
-                                    <option key={a} value={a}>{a}</option>
-                                  ))}
-                                </select>
-                              </div>
-                              <div className="space-y-1">
-                                <label className="text-[9px] font-mono font-bold uppercase text-slate-400">Open Hours</label>
-                                <input
-                                  type="text"
-                                  value={editedSalon.openHours}
-                                  onChange={(e) => setEditedSalon({ ...editedSalon, openHours: e.target.value })}
-                                  className="w-full bg-[#FAF7F2] dark:bg-[#12121E] border border-[#E1DBCE] px-3 py-1.5 text-xs rounded-lg"
-                                />
-                              </div>
-                              <div className="space-y-1">
-                                <label className="text-[9px] font-mono font-bold uppercase text-slate-400">Phone</label>
-                                <input
-                                  type="text"
-                                  value={editedSalon.phone || ''}
-                                  onChange={(e) => setEditedSalon({ ...editedSalon, phone: e.target.value })}
-                                  className="w-full bg-[#FAF7F2] dark:bg-[#12121E] border border-[#E1DBCE] px-3 py-1.5 text-xs rounded-lg"
-                                />
-                              </div>
-                              <div className="space-y-1">
-                                <label className="text-[9px] font-mono font-bold uppercase text-slate-400">Email</label>
-                                <input
-                                  type="email"
-                                  value={editedSalon.email || ''}
-                                  onChange={(e) => setEditedSalon({ ...editedSalon, email: e.target.value })}
-                                  className="w-full bg-[#FAF7F2] dark:bg-[#12121E] border border-[#E1DBCE] px-3 py-1.5 text-xs rounded-lg"
-                                />
-                              </div>
-                              <div className="space-y-1">
-                                <label className="text-[9px] font-mono font-bold uppercase text-slate-400">Address</label>
-                                <input
-                                  type="text"
-                                  value={editedSalon.address || ''}
-                                  onChange={(e) => setEditedSalon({ ...editedSalon, address: e.target.value })}
-                                  className="w-full bg-[#FAF7F2] dark:bg-[#12121E] border border-[#E1DBCE] px-3 py-1.5 text-xs rounded-lg"
-                                />
-                              </div>
-                              <div className="md:col-span-2 space-y-1">
-                                <label className="text-[9px] font-mono font-bold uppercase text-slate-400">Description</label>
-                                <textarea
-                                  rows={2}
-                                  value={editedSalon.description}
-                                  onChange={(e) => setEditedSalon({ ...editedSalon, description: e.target.value })}
-                                  className="w-full bg-[#FAF7F2] dark:bg-[#12121E] border border-[#E1DBCE] px-3 py-1.5 text-xs rounded-lg"
-                                />
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Images Management */}
-                          <div className="bg-white dark:bg-[#161625] border border-[#E1DBCE] dark:border-indigo-950/45 rounded-xl p-5 space-y-4">
-                            <h5 className="font-serif italic font-bold text-sm text-[#1E1A17] dark:text-white flex items-center gap-1.5">
-                              <Image className="w-4 h-4 text-[#A07D1A]" /> Manage Images ({editedSalon.images.length})
-                            </h5>
-                            
-                            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
-                              {editedSalon.images.map((img, idx) => (
-                                <div key={idx} className="relative group aspect-square rounded-lg overflow-hidden border border-[#E1DBCE]">
-                                  <img src={img} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                                  <button
-                                    onClick={() => handleRemoveImage(idx)}
-                                    className="absolute top-1 right-1 p-1 bg-rose-500/80 text-white rounded opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-                                    title="Remove image"
-                                  >
-                                    <Trash2 className="w-3 h-3" />
-                                  </button>
-                                </div>
-                              ))}
-                            </div>
-
-                            <div className="flex gap-2">
-                              <input
-                                type="url"
-                                value={newImageUrl}
-                                onChange={(e) => setNewImageUrl(e.target.value)}
-                                placeholder="Paste image URL here..."
-                                className="flex-1 bg-[#FAF7F2] dark:bg-[#12121E] border border-[#E1DBCE] px-3 py-2 text-xs rounded-lg"
-                              />
-                              <button
-                                onClick={handleAddImage}
-                                disabled={!newImageUrl.trim()}
-                                className="px-4 py-2 bg-[#A07D1A] text-white text-[10px] uppercase font-extrabold rounded-lg cursor-pointer disabled:opacity-40"
-                              >
-                                <Plus className="w-4 h-4" />
-                              </button>
-                            </div>
-                          </div>
-
-                          {/* Offers Management */}
-                          <div className="bg-white dark:bg-[#161625] border border-[#E1DBCE] dark:border-indigo-950/45 rounded-xl p-5 space-y-4">
-                            <div className="flex items-center justify-between">
-                              <h5 className="font-serif italic font-bold text-sm text-[#1E1A17] dark:text-white flex items-center gap-1.5">
-                                <Tag className="w-4 h-4 text-[#A07D1A]" /> Active Offers
-                              </h5>
-                              <button
-                                onClick={() => setShowAddOffer(!showAddOffer)}
-                                className="px-3 py-1.5 bg-[#A07D1A] text-white text-[10px] uppercase font-extrabold rounded-lg cursor-pointer"
-                              >
-                                {showAddOffer ? 'Cancel' : 'Add Offer'}
-                              </button>
-                            </div>
-
-                            {showAddOffer && (
-                              <div className="bg-[#FAF7F2] dark:bg-[#12121E] border border-[#E1DBCE] p-4 rounded-lg space-y-3">
-                                <div className="grid grid-cols-2 gap-2">
-                                  <div className="space-y-1">
-                                    <label className="text-[9px] font-mono font-bold uppercase text-slate-400">Offer Title</label>
-                                    <input
-                                      type="text"
-                                      value={newOffer.title}
-                                      onChange={(e) => setNewOffer({ ...newOffer, title: e.target.value })}
-                                      placeholder="Summer Special"
-                                      className="w-full bg-white dark:bg-[#161625] border border-[#E1DBCE] px-3 py-1.5 text-xs rounded-lg"
-                                    />
-                                  </div>
-                                  <div className="space-y-1">
-                                    <label className="text-[9px] font-mono font-bold uppercase text-slate-400">Discount %</label>
-                                    <input
-                                      type="number"
-                                      value={newOffer.discountPercent}
-                                      onChange={(e) => setNewOffer({ ...newOffer, discountPercent: Number(e.target.value) })}
-                                      className="w-full bg-white dark:bg-[#161625] border border-[#E1DBCE] px-3 py-1.5 text-xs rounded-lg"
-                                    />
-                                  </div>
-                                  <div className="space-y-1">
-                                    <label className="text-[9px] font-mono font-bold uppercase text-slate-400">Code</label>
-                                    <input
-                                      type="text"
-                                      value={newOffer.code}
-                                      onChange={(e) => setNewOffer({ ...newOffer, code: e.target.value.toUpperCase() })}
-                                      placeholder="SUMMER20"
-                                      className="w-full bg-white dark:bg-[#161625] border border-[#E1DBCE] px-3 py-1.5 text-xs rounded-lg"
-                                    />
-                                  </div>
-                                  <div className="space-y-1">
-                                    <label className="text-[9px] font-mono font-bold uppercase text-slate-400">Valid Until</label>
-                                    <input
-                                      type="date"
-                                      value={newOffer.validUntil}
-                                      onChange={(e) => setNewOffer({ ...newOffer, validUntil: e.target.value })}
-                                      className="w-full bg-white dark:bg-[#161625] border border-[#E1DBCE] px-3 py-1.5 text-xs rounded-lg"
-                                    />
-                                  </div>
-                                  <div className="col-span-2 space-y-1">
-                                    <label className="text-[9px] font-mono font-bold uppercase text-slate-400">Description</label>
-                                    <input
-                                      type="text"
-                                      value={newOffer.description}
-                                      onChange={(e) => setNewOffer({ ...newOffer, description: e.target.value })}
-                                      placeholder="20% off on all hair treatments..."
-                                      className="w-full bg-white dark:bg-[#161625] border border-[#E1DBCE] px-3 py-1.5 text-xs rounded-lg"
-                                    />
-                                  </div>
-                                </div>
-                                <button
-                                  onClick={handleAddOffer}
-                                  className="w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] uppercase font-extrabold rounded-lg cursor-pointer"
-                                >
-                                  Create Offer
-                                </button>
-                              </div>
-                            )}
-
-                            <div className="space-y-2">
-                              {(editedSalon.offers || []).map((offer) => (
-                                <div key={offer.id} className={`flex items-center justify-between p-3 rounded-lg border ${offer.isActive ? 'bg-emerald-50 dark:bg-emerald-900/10 border-emerald-200 dark:border-emerald-800' : 'bg-slate-50 dark:bg-slate-900/20 border-slate-200 dark:border-slate-800'}`}>
-                                  <div className="flex-1">
-                                    <div className="flex items-center gap-2">
-                                      <span className="font-serif italic font-bold text-sm text-[#1E1A17] dark:text-white">{offer.title}</span>
-                                      <span className="px-1.5 py-0.5 bg-[#A07D1A] text-white text-[8px] font-mono font-bold uppercase rounded">{offer.code}</span>
-                                      <span className={`px-1.5 py-0.5 text-[8px] font-mono font-bold uppercase rounded ${offer.isActive ? 'bg-emerald-500 text-white' : 'bg-slate-400 text-white'}`}>
-                                        {offer.isActive ? 'ACTIVE' : 'INACTIVE'}
-                                      </span>
-                                    </div>
-                                    <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">{offer.description}</p>
-                                    <p className="text-[9px] text-slate-400 font-mono">{offer.discountPercent}% off - Valid until {offer.validUntil}</p>
-                                  </div>
-                                  <div className="flex items-center gap-2">
-                                    <button
-                                      onClick={() => handleToggleOffer(offer.id)}
-                                      className={`px-2 py-1 text-[8px] uppercase font-bold rounded cursor-pointer ${offer.isActive ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}`}
-                                    >
-                                      {offer.isActive ? 'Deactivate' : 'Activate'}
-                                    </button>
-                                    <button
-                                      onClick={() => handleDeleteOffer(offer.id)}
-                                      className="p-1 text-rose-500 hover:bg-rose-100 rounded cursor-pointer"
-                                    >
-                                      <Trash2 className="w-3.5 h-3.5" />
-                                    </button>
-                                  </div>
-                                </div>
-                              ))}
-                              {(editedSalon.offers || []).length === 0 && (
-                                <p className="text-xs text-slate-400 text-center py-4">No offers created yet. Add your first offer above!</p>
-                              )}
-                            </div>
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  )}
                 </div>
               )}
             </div>
           )}
 
+          {/* TAB 3: PLATFORM ADMINISTRATIVE PORT */}
           {activeTab === 'admin' && (
             <div className="space-y-6">
               {!isAdminAuthenticated ? (
@@ -934,6 +626,23 @@ export default function AdminPortal({
                   </div>
 
                   <div className="space-y-3.5 bg-white dark:bg-[#161625] border border-[#E1DBCE] dark:border-indigo-950/45 p-6 rounded-xl">
+                    <div className="bg-rose-500/10 dark:bg-rose-500/5 border border-rose-500/30 p-3 rounded-lg text-left space-y-1">
+                      <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400 block">🏆 Hackathon Judge Credentials Help</span>
+                      <p className="text-[11px] text-slate-600 dark:text-slate-400">
+                        Username: <code className="bg-[#FAF7F2] dark:bg-[#12121E] px-1 py-0.5 rounded font-mono font-bold text-rose-600 dark:text-rose-400">admin</code> and Audit Key: <code className="bg-[#FAF7F2] dark:bg-[#12121E] px-1 py-0.5 rounded font-mono font-bold text-rose-600 dark:text-rose-400">admin123</code>
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setAdminUsername("admin");
+                          setAdminPassword("admin123");
+                        }}
+                        className="text-[10px] text-rose-600 dark:text-rose-400 hover:underline font-mono font-bold block mt-1 cursor-pointer"
+                      >
+                        ⚡ Auto-Fill Admin Credentials
+                      </button>
+                    </div>
+
                     <div className="space-y-1.5">
                       <label className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 block text-left">Admin Username</label>
                       <input
@@ -969,10 +678,11 @@ export default function AdminPortal({
               ) : (
                 <div className="space-y-8 text-left">
                   
+                  {/* Admin Panel Header summary */}
                   <div className="flex items-center justify-between border-b border-[#E1DBCE] dark:border-indigo-950 pb-3">
                     <div>
                       <h4 className="font-serif italic text-xl text-[#A07D1A] dark:text-amber-400 font-bold">Secretariat Dashboard</h4>
-                      <p className="text-xs text-slate-500 font-mono uppercase mt-0.5">ACTIVE ADMIN PROTOCOL ACCESS</p>
+                      <p className="text-xs text-slate-500 font-mono uppercase mt-0.5">🟢 ACTIVE ADMIN PROTOCOL ACCESS</p>
                     </div>
                     <button
                       onClick={() => setIsAdminAuthenticated(false)}
@@ -984,6 +694,7 @@ export default function AdminPortal({
 
                   <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                     
+                    {/* LEFT (7/12): REGISTERED SHOPS CONFIG CELL */}
                     <div className="lg:col-span-7 space-y-4">
                       <h5 className="font-serif italic font-bold text-sm text-[#1E1A17] dark:text-white flex items-center gap-1.5 border-b pb-1">
                         <Store className="w-4 h-4 text-[#A07D1A]" /> Registered Lounges ({salons.length})
@@ -1024,6 +735,7 @@ export default function AdminPortal({
                       </div>
                     </div>
 
+                    {/* RIGHT (5/12): ADD NEW SHOP CONSTRUCT CELL */}
                     <div className="lg:col-span-5 bg-[#FAF7F2]/50 dark:bg-[#161625]/30 border border-[#E1DBCE] dark:border-indigo-950/45 rounded-xl p-5 space-y-4">
                       <h5 className="font-serif italic font-bold text-sm text-[#1E1A17] dark:text-white flex items-center gap-1.5 border-b pb-1">
                         <Plus className="w-4 h-4 text-amber-500" /> Construct New Lounge
@@ -1066,9 +778,9 @@ export default function AdminPortal({
                               onChange={(e) => setNewSalonPrice(e.target.value as any)}
                               className="w-full bg-white dark:bg-[#12121E] border border-[#E1DBCE]/85 dark:border-indigo-950 px-2 py-1.5 text-xs rounded-lg focus:outline-none"
                             >
-                              <option value="$$">$$ Standard</option>
-                              <option value="$$$">$$$ Prestige</option>
-                              <option value="$$$$">$$$$ Ultra Luxe</option>
+                              <option value="₹₹">₹ India Standard (₹₹)</option>
+                              <option value="₹₹₹">₹ Prestige (₹₹)</option>
+                              <option value="₹₹₹₹">₹ Ultra Luxe (₹₹)</option>
                             </select>
                           </div>
                         </div>
@@ -1082,40 +794,6 @@ export default function AdminPortal({
                             onChange={(e) => setNewSalonHours(e.target.value)}
                             placeholder="09:00 AM - 09:00 PM"
                             className="w-full bg-white dark:bg-[#12121E] border border-[#E1DBCE]/85 dark:border-indigo-950 px-3 py-1.5 text-xs rounded-lg focus:outline-none"
-                          />
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-2">
-                          <div className="space-y-1">
-                            <label className="text-[9.5px] font-mono font-bold tracking-wider uppercase text-slate-400">Phone</label>
-                            <input
-                              type="tel"
-                              value={newSalonPhone}
-                              onChange={(e) => setNewSalonPhone(e.target.value)}
-                              placeholder="+91 80..."
-                              className="w-full bg-white dark:bg-[#12121E] border border-[#E1DBCE]/85 dark:border-indigo-950 px-3 py-1.5 text-xs rounded-lg"
-                            />
-                          </div>
-                          <div className="space-y-1">
-                            <label className="text-[9.5px] font-mono font-bold tracking-wider uppercase text-slate-400">Email</label>
-                            <input
-                              type="email"
-                              value={newSalonEmail}
-                              onChange={(e) => setNewSalonEmail(e.target.value)}
-                              placeholder="salon@email.com"
-                              className="w-full bg-white dark:bg-[#12121E] border border-[#E1DBCE]/85 dark:border-indigo-950 px-3 py-1.5 text-xs rounded-lg"
-                            />
-                          </div>
-                        </div>
-
-                        <div className="space-y-1">
-                          <label className="text-[9.5px] font-mono font-bold tracking-wider uppercase text-slate-400">Address</label>
-                          <input
-                            type="text"
-                            value={newSalonAddress}
-                            onChange={(e) => setNewSalonAddress(e.target.value)}
-                            placeholder="Full street address..."
-                            className="w-full bg-white dark:bg-[#12121E] border border-[#E1DBCE]/85 dark:border-indigo-950 px-3 py-1.5 text-xs rounded-lg"
                           />
                         </div>
 
@@ -1157,11 +835,111 @@ export default function AdminPortal({
                           type="submit"
                           className="w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] uppercase tracking-widest font-extrabold rounded-lg cursor-pointer transition-all"
                         >
-                          Deploy New Salon Coordinates
+                          ✦ Deploy New Salon Coordinates
                         </button>
                       </form>
                     </div>
 
+                  </div>
+
+                  {/* Supabase Admin status section */}
+                  <div className="bg-[#12121e] border border-blue-900/40 p-6 rounded-2xl space-y-4 text-left shadow-lg">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-indigo-950 pb-3">
+                      <div>
+                        <h5 className="text-amber-400 font-serif italic text-base font-extrabold flex items-center gap-2">
+                          ⚡ Supabase Cloud Sync Control
+                        </h5>
+                        <p className="text-[11px] text-slate-400 mt-0.5">
+                          Monitor database replication sync state to your Supabase tables.
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={fetchSupabaseStatus}
+                        className="px-3 py-1.5 bg-indigo-950/40 hover:bg-indigo-900/40 border border-indigo-900/65 text-indigo-300 rounded-lg text-[10px] font-mono font-bold uppercase tracking-wider cursor-pointer transition-colors"
+                      >
+                        Refresh Diagnostics
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {/* Stat 1: Connection status */}
+                      <div className="bg-neutral-900/40 border border-indigo-950 px-4 py-3 rounded-xl flex items-center gap-3">
+                        <span className="text-xl">🔌</span>
+                        <div>
+                          <div className="text-[9px] font-mono tracking-wider text-slate-400 uppercase">Supabase Link</div>
+                          <div className={`text-xs font-bold ${supabaseStatus?.connected ? "text-emerald-400" : "text-amber-500"}`}>
+                            {supabaseStatus?.connected ? "CONNECTED (REAL-TIME)" : "DISCONNECTED / UNLINKED"}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Stat 2: Salons table */}
+                      <div className="bg-neutral-900/40 border border-indigo-950 px-4 py-3 rounded-xl flex items-center gap-3">
+                        <span className="text-xl">🏢</span>
+                        <div>
+                          <div className="text-[9px] font-mono tracking-wider text-slate-400 uppercase">salons table</div>
+                          <div className={`text-xs font-bold ${supabaseStatus?.salonsTableOk ? "text-emerald-400" : "text-rose-500"}`}>
+                            {supabaseStatus?.connected ? (supabaseStatus?.salonsTableOk ? "SYNC ACTIVE (READY)" : "TABLE MISSING ⚠️") : "PENDING LINK"}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Stat 3: Bookings table */}
+                      <div className="bg-neutral-900/40 border border-indigo-950 px-4 py-3 rounded-xl flex items-center gap-3">
+                        <span className="text-xl">📅</span>
+                        <div>
+                          <div className="text-[9px] font-mono tracking-wider text-slate-400 uppercase">bookings table</div>
+                          <div className={`text-xs font-bold ${supabaseStatus?.bookingsTableOk ? "text-emerald-400" : "text-rose-500"}`}>
+                            {supabaseStatus?.connected ? (supabaseStatus?.bookingsTableOk ? "SYNC ACTIVE (READY)" : "TABLE MISSING ⚠️") : "PENDING LINK"}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* How to configure Supabase help */}
+                    {(!supabaseStatus?.salonsTableOk || !supabaseStatus?.bookingsTableOk) && (
+                      <div className="bg-[#0b0b11] border border-amber-900/35 p-4 rounded-xl space-y-3">
+                        <div className="text-[10px] uppercase font-mono tracking-widest text-amber-500 font-extrabold flex items-center gap-1">
+                          🛠️ Setup Requirement: Missing Database Tables Detected
+                        </div>
+                        <p className="text-[11px] text-slate-300 leading-relaxed">
+                          To activate Cloud sync, copy and paste this script in your **Supabase Dashboard SQL Editor** and click **Run**. Once created, the warnings will disappear instantly!
+                        </p>
+                        <pre className="text-[10px] leading-relaxed font-mono p-3 bg-black/60 border border-indigo-950/40 text-[#4ade80] rounded-lg overflow-x-auto max-h-[180px] text-left">
+{`-- SQL SCRIPT FOR SUPABASE EDITOR:
+create table salons (
+  id text primary key,
+  name text,
+  area text,
+  rating numeric,
+  "reviewCount" int,
+  "priceRange" text,
+  images jsonb,
+  services jsonb,
+  "openHours" text,
+  specialties jsonb,
+  "isLuxury" boolean,
+  "isFeatured" boolean,
+  description text,
+  "reviewsCount" int,
+  reviews jsonb
+);
+
+create table bookings (
+  id text primary key,
+  "salonId" text,
+  "salonName" text,
+  service jsonb,
+  date text,
+  time text,
+  "customerName" text,
+  "customerPhone" text,
+  status text
+);`}
+                        </pre>
+                      </div>
+                    )}
                   </div>
 
                 </div>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Star, MapPin, Award, Tag } from 'lucide-react';
+import { Star, MapPin, Award } from 'lucide-react';
 import { Salon } from '../types';
 
 interface SalonCardProps {
@@ -10,20 +10,8 @@ interface SalonCardProps {
 }
 
 export default function SalonCard({ salon, onSelect, onBookNow }: SalonCardProps) {
+  // Get unique categories for pills or top 3 services
   const topServices = (salon.services || []).slice(0, 3);
-  const activeOffers = salon.offers?.filter(o => o.isActive) || [];
-  const bestOffer = activeOffers.length > 0 
-    ? activeOffers.reduce((prev, curr) => curr.discountPercent > prev.discountPercent ? curr : prev)
-    : null;
-
-  const formatPrice = (range: string) => {
-    const map: Record<string, string> = {
-      '$$': 'Signature ($$)',
-      '$$$': 'Premium ($$$)',
-      '$$$$': 'Ultra Luxury ($$$$)'
-    };
-    return map[range] || range;
-  };
 
   return (
     <div
@@ -31,16 +19,12 @@ export default function SalonCard({ salon, onSelect, onBookNow }: SalonCardProps
       id={`salon_card_${salon.id}`}
       className="group relative flex flex-col bg-white dark:bg-[#12121E] border border-[#E1DBCE] dark:border-indigo-950/60 hover:border-[#A07D1A] dark:hover:border-amber-500 rounded-2xl overflow-hidden shadow-[0_4px_20px_rgba(44,38,33,0.03)] hover:shadow-[0_12px_28px_rgba(160,125,26,0.06)] dark:hover:shadow-[0_12px_28px_rgba(212,175,55,0.08)] transform hover:-translate-y-1.5 transition-all duration-300 cursor-pointer h-full"
     >
+      {/* Luxury image header */}
       <div className="relative aspect-[4/3] overflow-hidden">
+        {/* Luxury Badge overlays */}
         {salon.isLuxury && (
           <div className="absolute top-3 left-3 z-10 flex items-center gap-1 px-2.5 py-0.5 bg-[#A07D1A] text-white font-bold text-[8.5px] uppercase tracking-wider rounded-lg shadow-md">
             <Award className="w-3.5 h-3.5 fill-white text-white" /> Ultra Luxe
-          </div>
-        )}
-
-        {bestOffer && (
-          <div className="absolute top-3 right-3 z-10 flex items-center gap-1 px-2 py-0.5 bg-emerald-500 text-white font-bold text-[8px] uppercase tracking-wider rounded-lg shadow-md">
-            <Tag className="w-3 h-3" /> {bestOffer.discountPercent}% OFF
           </div>
         )}
 
@@ -51,15 +35,19 @@ export default function SalonCard({ salon, onSelect, onBookNow }: SalonCardProps
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
           referrerPolicy="no-referrer"
         />
+        {/* Shadow Overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-white dark:from-[#12121E] via-transparent to-transparent opacity-80"></div>
         
+        {/* Geographic Area Badge */}
         <div className="absolute bottom-3 right-3 flex items-center gap-1 px-2.5 py-0.5 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border border-[#E1DBCE] dark:border-indigo-950/50 rounded-full text-[#A07D1A] dark:text-amber-400 font-mono text-[9px] font-bold tracking-wider shadow-2xs">
           <MapPin className="w-3 h-3 text-[#A07D1A] dark:text-amber-500" /> {salon.area || "Bengaluru"}
         </div>
       </div>
 
+      {/* Card Content body */}
       <div className="p-5 flex-1 flex flex-col justify-between text-left">
         <div className="space-y-2.5">
+          {/* Rating stars & price tier */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1 text-[#A07D1A] dark:text-amber-400">
               {Array.from({ length: 5 }).map((_, i) => {
@@ -86,21 +74,17 @@ export default function SalonCard({ salon, onSelect, onBookNow }: SalonCardProps
             </div>
           </div>
 
+          {/* Salon Name */}
           <h4 className="font-serif italic text-xl font-bold text-[#1E1A17] dark:text-[#FCFAF7] group-hover:text-[#A07D1A] dark:group-hover:text-amber-400 transition-colors leading-tight">
             {salon.name}
           </h4>
 
+          {/* Brief description */}
           <p className="text-xs text-[#5C534C] dark:text-slate-400 line-clamp-2 leading-relaxed h-[36px]">
-            {salon.description}
+            {originalDescription(salon.description)}
           </p>
 
-          {bestOffer && (
-            <div className="flex items-center gap-1.5 text-[10px] text-emerald-600 dark:text-emerald-400 font-mono font-bold bg-emerald-50 dark:bg-emerald-900/10 px-2 py-1 rounded-lg border border-emerald-200 dark:border-emerald-800">
-              <Tag className="w-3 h-3" />
-              Use code <span className="font-extrabold">{bestOffer.code}</span> for {bestOffer.discountPercent}% off
-            </div>
-          )}
-
+          {/* Top 3 services list */}
           <div className="flex flex-wrap gap-1 pt-1.5 border-t border-slate-100 dark:border-slate-900/40 mt-2">
             {topServices.map((svc, i) => (
               <span
@@ -113,9 +97,10 @@ export default function SalonCard({ salon, onSelect, onBookNow }: SalonCardProps
           </div>
         </div>
 
+        {/* CTA "Book Now" Button */}
         <div className="mt-5 pt-3.5 border-t border-slate-100 dark:border-slate-900/45 flex items-center justify-between gap-3">
           <span className="text-[9.5px] text-[#5C534C] dark:text-slate-400 font-mono uppercase tracking-wider font-semibold">
-            Slots Live Today
+            ⏱️ Slots Live Today
           </span>
           <button
             onClick={(e) => {
@@ -127,7 +112,16 @@ export default function SalonCard({ salon, onSelect, onBookNow }: SalonCardProps
             Book Now
           </button>
         </div>
+
       </div>
     </div>
   );
+}
+
+// Helper to keep descriptions tidy
+function originalDescription(desc: string) {
+  if (desc.includes('Nestled in the upscale')) {
+    return 'Premier French salon boudoir delivering master styling and custom color diagnostics.';
+  }
+  return desc;
 }

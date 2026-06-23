@@ -15,23 +15,13 @@ export interface Service {
   category: 'Hair' | 'Skin' | 'Nails' | 'Bridal' | 'Spa' | 'Grooming';
 }
 
-export interface Offer {
-  id: string;
-  title: string;
-  description: string;
-  discountPercent: number;
-  validUntil: string;
-  code: string;
-  isActive: boolean;
-}
-
 export interface Salon {
   id: string;
   name: string;
   area: 'Indiranagar' | 'Koramangala' | 'Whitefield' | 'Jayanagar' | 'HSR Layout' | 'Banaswadi';
   rating: number;
   reviewCount: number;
-  priceRange: '$$' | '$$$' | '$$$$';
+  priceRange: '₹₹' | '₹₹₹' | '₹₹₹₹';
   images: string[];
   services: Service[];
   openHours: string;
@@ -41,10 +31,6 @@ export interface Salon {
   description: string;
   reviewsCount: number;
   reviews: Review[];
-  offers?: Offer[];
-  phone?: string;
-  email?: string;
-  address?: string;
 }
 
 export interface Booking {
@@ -55,8 +41,8 @@ export interface Booking {
   date: string;
   time: string;
   customerName: string;
-  customerEmail: string;
-  status: 'confirmed' | 'pending' | 'completed' | 'cancelled';
+  customerPhone: string;
+  status: 'confirmed' | 'pending';
 }
 
 export interface QuizQA {

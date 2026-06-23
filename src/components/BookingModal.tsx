@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Calendar, Clock, User, Mail, CircleCheck as CheckCircle, ShieldCheck, Ticket, CircleSlash, Sparkles } from 'lucide-react';
+import { X, Calendar, Clock, User, Phone, CheckCircle, ShieldCheck, Ticket, CircleSlash, Sparkles, Mail } from 'lucide-react';
 import { Salon, Service, Booking } from '../types';
 
 interface BookingModalProps {
@@ -35,6 +35,7 @@ export default function BookingModal({
       setStep(1);
       setSelectedService(initialService || (salon && salon.services[0]) || null);
       
+      // Auto-populate tomorrow's date
       const tomorrow = new Date();
       tomorrow.setDate(tomorrow.getDate() + 1);
       setSelectedDate(tomorrow.toISOString().split('T')[0]);
@@ -47,6 +48,7 @@ export default function BookingModal({
 
   if (!isOpen || !salon) return null;
 
+  // Generate 7 days starting from tomorrow
   const getNext7Days = () => {
     const days = [];
     const weekdayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -71,14 +73,14 @@ export default function BookingModal({
     '03:30 PM', '05:00 PM', '06:30 PM', '08:00 PM'
   ];
 
-  const handleBookingSubmit = async (e: React.FormEvent) => {
+  const handleBookingSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!customerName.trim()) {
       setFormError('Please enter your full name.');
       return;
     }
-    if (!customerEmail.trim() || !customerEmail.includes('@')) {
-      setFormError('Please enter a valid email address.');
+    if (!customerEmail.trim() || !customerEmail.includes('@') || !customerEmail.includes('.')) {
+      setFormError('Please enter a valid Gmail or email address (e.g. name@gmail.com).');
       return;
     }
 
@@ -93,49 +95,59 @@ export default function BookingModal({
       date: selectedDate,
       time: selectedTime,
       customerName,
-      customerEmail,
+      customerPhone: customerEmail, // Map email address into customerPhone column for full backend compatibility
       status: 'confirmed'
     };
 
+    // Save to localStorage & database sync
     try {
       const savedBookingsStr = localStorage.getItem('glamblr_bookings');
       const savedBookings = savedBookingsStr ? JSON.parse(savedBookingsStr) : [];
       savedBookings.unshift(newBooking);
       localStorage.setItem('glamblr_bookings', JSON.stringify(savedBookings));
 
+      // POST to backend API for shop manager & master admin visibility
       fetch('/api/bookings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newBooking)
       }).catch(err => console.error("Database sync delay", err));
 
-      // EmailJS integration
+      // Dispatch real confirmation email via EmailJS
       if (emailjsServiceId && emailjsTemplateId && emailjsPublicKey) {
-        try {
-          await fetch('https://api.emailjs.com/api/v1.0/email/send', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              service_id: emailjsServiceId,
-              template_id: emailjsTemplateId,
-              user_id: emailjsPublicKey,
-              template_params: {
-                to_name: customerName,
-                salon_name: salon.name,
-                service_name: selectedService?.name,
-                service_price: `Rs.${selectedService?.price.toLocaleString('en-IN')}`,
-                booking_date: selectedDate,
-                booking_time: selectedTime,
-                booking_id: newBookingId,
-                customer_email: customerEmail,
-                reply_to: customerEmail
-              }
-            })
-          });
-          console.log("[EmailJS] Booking confirmation email dispatched successfully.");
-        } catch (err) {
-          console.error("[EmailJS Error] Failed to send email:", err);
-        }
+        fetch('https://api.emailjs.com/api/v1.0/email/send', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            service_id: emailjsServiceId,
+            template_id: emailjsTemplateId,
+            user_id: emailjsPublicKey,
+            template_params: {
+              to_name: customerName,
+              customer_name: customerName,
+              salon_name: salon.name,
+              service_name: selectedService?.name,
+              service_price: `₹${selectedService?.price.toLocaleString('en-IN')}`,
+              booking_date: selectedDate,
+              booking_time: selectedTime,
+              booking_id: newBookingId,
+              customer_phone: customerEmail,
+              customer_email: customerEmail,
+              to_email: customerEmail,
+              user_email: customerEmail,
+              email: customerEmail,
+              gmail: customerEmail
+            }
+          })
+        })
+        .then(res => {
+          if (res.ok) {
+            console.log("[EmailJS Sync] Booking confirmation email dispatched successfully.");
+          } else {
+            console.warn("[EmailJS Alert] API rejected send. Check credentials.");
+          }
+        })
+        .catch(err => console.error("[EmailJS Error] Failed to send email:", err));
       }
       
     } catch (err) {
@@ -147,10 +159,13 @@ export default function BookingModal({
 
   return (
     <div id="booking_modal_portal" className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {/* Semi-transparent backdrop overlay */}
       <div className="absolute inset-0 bg-[#07070E] bg-opacity-85 backdrop-blur-md" onClick={onClose} />
 
+      {/* Glass card style overlay mapping */}
       <div className="relative w-full max-w-lg bg-[#0F0F1A] border border-[rgba(212,175,55,0.25)] rounded-2xl p-6 md:p-8 overflow-y-auto max-h-[90vh] shadow-[0_0_50px_rgba(212,175,55,0.25)] z-10 text-white flex flex-col justify-between">
         
+        {/* Header content section */}
         <div className="flex items-center justify-between border-b border-white/5 pb-4 mb-5">
           <div>
             <span className="text-[10px] text-[#D4AF37] uppercase tracking-[0.25em] font-semibold">Reserve Experience</span>
@@ -161,6 +176,7 @@ export default function BookingModal({
           </button>
         </div>
 
+        {/* Step progress bullets */}
         {step < 4 && (
           <div className="flex items-center justify-between text-xs text-gray-400 mb-6 font-mono border-b border-white/5 pb-3">
             <span className={`${step === 1 ? 'text-[#D4AF37] font-bold' : ''}`}>1. Select Service</span>
@@ -171,6 +187,7 @@ export default function BookingModal({
           </div>
         )}
 
+        {/* STEP 1: SELECT SERVICE */}
         {step === 1 && (
           <div className="space-y-4">
             <h4 className="font-serif font-semibold text-lg text-white mb-3">Choose Your Desired Service:</h4>
@@ -201,7 +218,7 @@ export default function BookingModal({
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="font-serif font-bold text-[#D4AF37] text-lg">Rs.{svc.price.toLocaleString('en-IN')}</div>
+                    <div className="font-serif font-bold text-[#D4AF37] text-lg">₹{svc.price.toLocaleString('en-IN')}</div>
                     <span className="text-[10px] text-[#8888AA]">Incl. Taxes</span>
                   </div>
                 </label>
@@ -220,10 +237,12 @@ export default function BookingModal({
           </div>
         )}
 
+        {/* STEP 2: CHOOSE DATE / TIME */}
         {step === 2 && (
           <div className="space-y-4">
             <h4 className="font-serif font-semibold text-lg text-white mb-2">Determine Fitting Appointment:</h4>
             
+            {/* 7 Days Grid */}
             <div className="grid grid-cols-4 sm:grid-cols-7 gap-2">
               {getNext7Days().map((day) => (
                 <button
@@ -242,11 +261,13 @@ export default function BookingModal({
               ))}
             </div>
 
+            {/* Time Slot Header */}
             <div className="flex items-center gap-2 mt-5 text-gray-400 text-xs font-semibold">
               <Clock className="w-4 h-4 text-[#D4AF37]" />
               <span>Select Available Time Slot:</span>
             </div>
 
+            {/* Time Slots Grid */}
             <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
               {timeSlots.map((time) => (
                 <button
@@ -285,6 +306,7 @@ export default function BookingModal({
           </div>
         )}
 
+        {/* STEP 3: CONFIRM CREDENTIALS */}
         {step === 3 && (
           <form onSubmit={handleBookingSubmit} className="space-y-4">
             <h4 className="font-serif font-semibold text-lg text-white mb-2">Identify Your Booking Account:</h4>
@@ -301,10 +323,11 @@ export default function BookingModal({
               <div className="h-0.5 bg-white/5 my-2"></div>
               <div className="flex justify-between items-baseline">
                 <span className="text-xs text-gray-400">Total Premium Sum</span>
-                <span className="text-lg text-[#D4AF37] font-serif font-bold">Rs.{selectedService?.price.toLocaleString('en-IN')}</span>
+                <span className="text-lg text-[#D4AF37] font-serif font-bold">₹{selectedService?.price.toLocaleString('en-IN')}</span>
               </div>
             </div>
 
+            {/* Input fields */}
             <div className="space-y-3 text-left">
               <div>
                 <label className="block text-xs text-gray-400 mb-1 font-semibold uppercase tracking-wider">Your Full Name</label>
@@ -322,13 +345,13 @@ export default function BookingModal({
               </div>
 
               <div>
-                <label className="block text-xs text-gray-400 mb-1 font-semibold uppercase tracking-wider">Email Address</label>
+                <label className="block text-xs text-gray-400 mb-1 font-semibold uppercase tracking-wider">Gmail / Email Address</label>
                 <div className="relative">
                   <Mail className="absolute left-3.5 top-3 w-4 h-4 text-gray-500" />
                   <input
                     type="email"
                     required
-                    placeholder="your.email@gmail.com"
+                    placeholder="E.g., ananya@gmail.com"
                     value={customerEmail}
                     onChange={(e) => setCustomerEmail(e.target.value)}
                     className="w-full bg-white/5 focus:bg-white/10 border border-white/10 focus:border-[#D4AF37] rounded-xl py-2.5 pl-10 pr-4 text-sm text-white focus:outline-none transition-all"
@@ -338,7 +361,7 @@ export default function BookingModal({
 
               {formError && (
                 <p className="text-xs text-[#FF6B9D] font-semibold text-center mt-1 animate-pulse">
-                  {formError}
+                  ⚠️ {formError}
                 </p>
               )}
             </div>
@@ -361,6 +384,7 @@ export default function BookingModal({
           </form>
         )}
 
+        {/* STEP 4: SUCCESS! */}
         {step === 4 && (
           <div className="text-center py-6 space-y-5 animate-fadeIn">
             <div className="mx-auto w-16 h-16 rounded-full bg-[rgba(212,175,55,0.08)] border border-[#D4AF37] flex items-center justify-center shadow-[0_0_25px_rgba(212,175,55,0.2)] animate-pulse">
@@ -373,7 +397,9 @@ export default function BookingModal({
               <p className="text-xs text-gray-400">A digital receipt and confirmation has been processed.</p>
             </div>
 
+            {/* Receipt ticket detail */}
             <div className="relative mx-auto max-w-sm bg-[#161625] border border-[rgba(212,175,55,0.25)] rounded-2xl p-5 text-left overflow-hidden">
+              {/* Ticket stub side rings */}
               <div className="absolute top-1/2 -left-3.5 w-7 h-7 bg-[#0F0F1A] border-r border-[rgba(212,175,55,0.25)] rounded-full -translate-y-1/2"></div>
               <div className="absolute top-1/2 -right-3.5 w-7 h-7 bg-[#0F0F1A] border-l border-[rgba(212,175,55,0.25)] rounded-full -translate-y-1/2"></div>
               
@@ -404,6 +430,7 @@ export default function BookingModal({
                   </div>
                 </div>
 
+                {/* Secure Badge */}
                 <div className="flex items-center justify-center gap-1.5 pt-2 text-[9px] text-gray-400 uppercase tracking-widest text-center border-t border-white/5">
                   <ShieldCheck className="w-3.5 h-3.5 text-[#D4AF37]" /> Verified Luxury Account
                 </div>

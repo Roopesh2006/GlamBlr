@@ -51,7 +51,7 @@ const INITIAL_SALONS = [
     area: "Indiranagar",
     rating: 4.9,
     reviewCount: 342,
-    priceRange: "$$",
+    priceRange: "₹₹₹₹",
     images: [
       "https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&q=80&w=800",
       "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&q=80&w=800"
@@ -79,7 +79,7 @@ const INITIAL_SALONS = [
     area: "Koramangala",
     rating: 4.8,
     reviewCount: 218,
-    priceRange: "$$",
+    priceRange: "₹₹₹",
     images: [
       "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&q=80&w=800",
       "https://images.unsplash.com/photo-1562322140-8baeececf3df?auto=format&fit=crop&q=80&w=800"
@@ -103,7 +103,7 @@ const INITIAL_SALONS = [
     area: "Whitefield",
     rating: 4.7,
     reviewCount: 154,
-    priceRange: "$",
+    priceRange: "₹₹",
     images: [
       "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&q=80&w=800",
       "https://images.unsplash.com/photo-1621605815971-fbc98d665033?auto=format&fit=crop&q=80&w=800"
@@ -126,7 +126,7 @@ const INITIAL_SALONS = [
     area: "Jayanagar",
     rating: 4.95,
     reviewCount: 98,
-    priceRange: "$$",
+    priceRange: "₹₹₹",
     images: [
       "https://images.unsplash.com/photo-1595425970377-c9703cf48b6d?auto=format&fit=crop&q=80&w=800",
       "https://images.unsplash.com/photo-1607613009820-a29f7bb81c04?auto=format&fit=crop&q=80&w=800"
@@ -149,7 +149,7 @@ const INITIAL_SALONS = [
     area: "HSR Layout",
     rating: 4.65,
     reviewCount: 76,
-    priceRange: "$",
+    priceRange: "₹₹",
     images: [
       "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&q=80&w=800"
     ],
@@ -171,7 +171,7 @@ const INITIAL_SALONS = [
     area: "Banaswadi",
     rating: 4.88,
     reviewCount: 112,
-    priceRange: "$$",
+    priceRange: "₹₹₹",
     images: [
       "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&q=80&w=800"
     ],
@@ -303,7 +303,7 @@ app.post("/api/salons", async (req, res) => {
     area,
     rating: 5.0, // default new salon to pristine 5 stars
     reviewCount: 1,
-    priceRange: priceRange || "$$",
+    priceRange: priceRange || "₹₹₹",
     images: images && images.length ? images : ["https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&q=80&w=800"],
     services: services || [],
     openHours: openHours || "09:00 AM - 09:00 PM",
@@ -333,36 +333,6 @@ app.post("/api/salons", async (req, res) => {
   }
 
   res.json({ success: true, salon: newSalon });
-});
-
-// Admin updates a salon
-app.put("/api/salons/:id", async (req, res) => {
-  const { id } = req.params;
-  const updates = req.body;
-  const db = loadDB();
-  
-  const salonIndex = db.salons.findIndex((s: any) => s.id === id);
-  if (salonIndex === -1) {
-    return res.status(404).json({ error: "Salon not found" });
-  }
-
-  db.salons[salonIndex] = { ...db.salons[salonIndex], ...updates };
-  saveDB(db);
-
-  if (supabase) {
-    try {
-      const { error } = await supabase.from("salons").update(updates).eq("id", id);
-      if (error) {
-        console.warn("[Supabase Sync Warning] Salon update failed:", error.message);
-      } else {
-        console.log("[Supabase Sync] Salon updated on Cloud DB:", id);
-      }
-    } catch (err: any) {
-      console.error("[Supabase Update Sync Error]", err.message);
-    }
-  }
-
-  res.json({ success: true, salon: db.salons[salonIndex] });
 });
 
 // Admin deletes a salon
@@ -410,9 +380,9 @@ app.get("/api/bookings", async (req, res) => {
 
 // Client makes a booking
 app.post("/api/bookings", async (req, res) => {
-  const { signupMode, id, salonId, salonName, service, date, time, customerName, customerEmail } = req.body;
+  const { signupMode, id, salonId, salonName, service, date, time, customerName, customerPhone } = req.body;
 
-  if (!salonId || !service || !date || !time || !customerName || !customerEmail) {
+  if (!salonId || !service || !date || !time || !customerName || !customerPhone) {
     return res.status(400).json({ error: "Booking missing required parameters" });
   }
 
@@ -425,7 +395,7 @@ app.post("/api/bookings", async (req, res) => {
     date,
     time,
     customerName,
-    customerEmail,
+    customerPhone,
     status: "confirmed"
   };
 
