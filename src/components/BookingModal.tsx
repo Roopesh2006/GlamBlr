@@ -163,7 +163,10 @@ export default function BookingModal({
       <div className="absolute inset-0 bg-[#07070E] bg-opacity-85 backdrop-blur-md" onClick={onClose} />
 
       {/* Glass card style overlay mapping */}
-      <div className="relative w-full max-w-lg bg-[#0F0F1A] border border-[rgba(212,175,55,0.25)] rounded-2xl p-6 md:p-8 overflow-y-auto max-h-[90vh] shadow-[0_0_50px_rgba(212,175,55,0.25)] z-10 text-white flex flex-col justify-between">
+      <div 
+        data-lenis-prevent
+        className="relative w-full max-w-lg bg-[#0F0F1A] border border-[rgba(212,175,55,0.25)] rounded-2xl p-6 md:p-8 overflow-y-auto max-h-[90vh] shadow-[0_0_50px_rgba(212,175,55,0.25)] z-10 text-white flex flex-col justify-between"
+      >
         
         {/* Header content section */}
         <div className="flex items-center justify-between border-b border-white/5 pb-4 mb-5">

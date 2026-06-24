@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Sparkles, Compass, MapPin, Smile, Flame, Play, ArrowRight, Heart, Award, CalendarCheck, HelpCircle, Star, Quote, RefreshCw, ChevronUp, ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import Lenis from 'lenis';
@@ -29,51 +29,131 @@ export default function App() {
   const [currentPage, setCurrentPage] = useState<'home' | 'explore' | 'salon-detail'>('home');
   const [selectedSalonId, setSelectedSalonId] = useState<string | null>(null);
 
-  // Noomo Custom Interactive Spring Cursor
-  const [mousePos, setMousePos] = useState({ x: -100, y: -100 });
-  const [cursorHovered, setCursorHovered] = useState(false);
-  const [cursorText, setCursorText] = useState("");
-  const [isCursorVisible, setIsCursorVisible] = useState(false);
+  // Noomo Custom Interactive Spring Cursor Refs
+  const cursorDotRef = useRef<HTMLDivElement | null>(null);
+  const cursorRingRef = useRef<HTMLDivElement | null>(null);
+  const cursorTextRef = useRef<HTMLSpanElement | null>(null);
 
   useEffect(() => {
+    let mouseX = -100;
+    let mouseY = -100;
+    let ringX = -100;
+    let ringY = -100;
+    let isVisible = false;
+
+    let targetDotScale = 1;
+    let targetRingScale = 1;
+    let currentDotScale = 1;
+    let currentRingScale = 1;
+    let targetRingColor = 'rgba(160, 125, 26, 0.45)';
+    let targetRingBg = 'rgba(0, 0, 0, 0)';
+
     const handleMouseMove = (e: MouseEvent) => {
-      setMousePos({ x: e.clientX, y: e.clientY });
-      if (!isCursorVisible) setIsCursorVisible(true);
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+      if (!isVisible) {
+        isVisible = true;
+        if (cursorDotRef.current) cursorDotRef.current.style.opacity = '1';
+        if (cursorRingRef.current) cursorRingRef.current.style.opacity = '1';
+      }
     };
 
     const handleMouseLeave = () => {
-      setIsCursorVisible(false);
+      isVisible = false;
+      if (cursorDotRef.current) cursorDotRef.current.style.opacity = '0';
+      if (cursorRingRef.current) cursorRingRef.current.style.opacity = '0';
     };
 
     const handleMouseEnter = () => {
-      setIsCursorVisible(true);
+      isVisible = true;
+      if (cursorDotRef.current) cursorDotRef.current.style.opacity = '1';
+      if (cursorRingRef.current) cursorRingRef.current.style.opacity = '1';
     };
 
     const handleMouseOver = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
       if (!target) return;
-      const isHoverable = target.closest('button, a, select, input, [role="button"], .group, .cursor-pointer, .noomo-magnetic, [data-cursor-text]');
-      if (isHoverable) {
-        setCursorHovered(true);
+      
+      const isInput = target.closest('input, textarea, select, [contenteditable="true"]');
+      const isHoverable = target.closest('button, a, [role="button"], .group, .cursor-pointer, .noomo-magnetic, [data-cursor-text]');
+      
+      if (isInput) {
+        targetDotScale = 0.4;
+        targetRingScale = 1.4;
+        targetRingColor = 'rgba(160, 125, 26, 0.25)';
+        targetRingBg = 'rgba(0, 0, 0, 0)';
+        if (cursorTextRef.current) cursorTextRef.current.style.opacity = '0';
+      } else if (isHoverable) {
+        targetDotScale = 1.2;
+        targetRingScale = 1.8;
+        targetRingColor = 'rgba(212, 175, 55, 0.8)';
+        targetRingBg = 'rgba(160, 125, 26, 0.08)';
+        
         const text = isHoverable.getAttribute('data-cursor-text') || "";
-        setCursorText(text);
+        if (cursorTextRef.current) {
+          cursorTextRef.current.textContent = text;
+          cursorTextRef.current.style.opacity = text ? '1' : '0';
+        }
       } else {
-        setCursorHovered(false);
-        setCursorText("");
+        targetDotScale = 1;
+        targetRingScale = 1;
+        targetRingColor = 'rgba(160, 125, 26, 0.45)';
+        targetRingBg = 'rgba(0, 0, 0, 0)';
+        if (cursorTextRef.current) cursorTextRef.current.style.opacity = '0';
       }
     };
 
-    window.addEventListener('mousemove', handleMouseMove);
+    const handleMouseDown = () => {
+      targetDotScale = 0.6;
+      targetRingScale = 0.8;
+    };
+
+    const handleMouseUp = () => {
+      targetDotScale = 1;
+      targetRingScale = 1;
+    };
+
+    let animationFrameId = 0;
+    const updateCursor = () => {
+      // Linear interpolation (lerp) for trailing ring inertia effect
+      const ease = 0.15;
+      ringX += (mouseX - ringX) * ease;
+      ringY += (mouseY - ringY) * ease;
+
+      currentDotScale += (targetDotScale - currentDotScale) * 0.2;
+      currentRingScale += (targetRingScale - currentRingScale) * 0.2;
+
+      if (cursorDotRef.current) {
+        cursorDotRef.current.style.transform = `translate3d(${mouseX - 3}px, ${mouseY - 3}px, 0) scale(${currentDotScale})`;
+      }
+      if (cursorRingRef.current) {
+        cursorRingRef.current.style.transform = `translate3d(${ringX - 12}px, ${ringY - 12}px, 0) scale(${currentRingScale})`;
+        cursorRingRef.current.style.borderColor = targetRingColor;
+        cursorRingRef.current.style.backgroundColor = targetRingBg;
+      }
+
+      animationFrameId = requestAnimationFrame(updateCursor);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove, { passive: true });
     document.addEventListener('mouseleave', handleMouseLeave);
     document.addEventListener('mouseenter', handleMouseEnter);
-    window.addEventListener('mouseover', handleMouseOver);
+    window.addEventListener('mouseover', handleMouseOver, { passive: true });
+    window.addEventListener('mousedown', handleMouseDown);
+    window.addEventListener('mouseup', handleMouseUp);
+
+    updateCursor();
+
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseleave', handleMouseLeave);
       document.removeEventListener('mouseenter', handleMouseEnter);
       window.removeEventListener('mouseover', handleMouseOver);
+      window.removeEventListener('mousedown', handleMouseDown);
+      window.removeEventListener('mouseup', handleMouseUp);
+      cancelAnimationFrame(animationFrameId);
     };
-  }, [isCursorVisible]);
+  }, []);
 
   // Initialize Lenis Smooth Scroll
   useEffect(() => {
@@ -152,6 +232,34 @@ export default function App() {
   const [bookingSalon, setBookingSalon] = useState<Salon | null>(null);
   const [bookingService, setBookingService] = useState<Service | undefined>(undefined);
   const [bookingModalOpen, setBookingModalOpen] = useState(false);
+
+  // Prevent background scroll and disable Lenis when any modal or drawer is open
+  useEffect(() => {
+    const isAnyModalOpen = isQuizOpen || isBookingsOpen || bookingModalOpen || isAdminPortalOpen;
+    const lenis = (window as any).lenisInstance;
+    
+    if (isAnyModalOpen) {
+      document.body.style.overflow = 'hidden';
+      document.body.classList.add('overflow-hidden');
+      if (lenis) {
+        lenis.stop();
+      }
+    } else {
+      document.body.style.overflow = '';
+      document.body.classList.remove('overflow-hidden');
+      if (lenis) {
+        lenis.start();
+      }
+    }
+    
+    return () => {
+      document.body.style.overflow = '';
+      document.body.classList.remove('overflow-hidden');
+      if (lenis) {
+        lenis.start();
+      }
+    };
+  }, [isQuizOpen, isBookingsOpen, bookingModalOpen, isAdminPortalOpen]);
 
   // Initial queries passed into explore page
   const [initialExploreSearchQuery, setInitialExploreSearchQuery] = useState('');
@@ -359,43 +467,39 @@ export default function App() {
   };
 
   return (
-    <div className={`relative min-h-screen selection:bg-[#D4AF37] selection:text-black transition-colors duration-700 md:cursor-none ${
+    <div className={`relative min-h-screen selection:bg-[#D4AF37] selection:text-black transition-colors duration-700 ${
       appDarkMode ? 'bg-[#08080E] text-[#FCFAF7] dark' : 'text-[#1A1715] bg-[#FAF8F4]'
     }`}>
-
-      {/* NOOMO INTERACTIVE SPRING CURSOR WITH BEAUTIFUL SPARKLES ICON */}
-      <motion.div
-        className="hidden md:block fixed pointer-events-none z-50 text-amber-400"
-        animate={{
-          x: mousePos.x - 10,
-          y: mousePos.y - 10,
-          opacity: isCursorVisible ? 1 : 0,
-          rotate: cursorHovered ? 135 : 0,
-        }}
-        transition={{ type: "spring", stiffness: 280, damping: 24, mass: 0.08 }}
+      
+      {/* NOOMO INTERACTIVE SPRING CURSOR WITH DUAL-ELEMENT NATIVE RENDER LOOP */}
+      <div
+        ref={cursorDotRef}
+        className="hidden md:block fixed pointer-events-none z-[999999] rounded-full bg-[#A07D1A] dark:bg-amber-400 opacity-0 transition-opacity duration-300"
         style={{
-          width: 20,
-          height: 20,
-          filter: "drop-shadow(0px 2px 6px rgba(245, 158, 11, 0.45))",
+          width: 6,
+          height: 6,
+          boxShadow: "0 0 10px rgba(212, 175, 55, 0.45)",
+          top: 0,
+          left: 0,
+          willChange: "transform",
+        }}
+      />
+      <div
+        ref={cursorRingRef}
+        className="hidden md:block fixed pointer-events-none z-[999998] rounded-full border border-[#A07D1A]/50 dark:border-amber-400/50 opacity-0 transition-opacity duration-300"
+        style={{
+          width: 24,
+          height: 24,
+          top: 0,
+          left: 0,
+          willChange: "transform",
         }}
       >
-        <Sparkles className="w-5 h-5 fill-amber-400/20" />
-        
-        {/* Floating high-end luxury tooltip label next to the custom pointer icon */}
-        <AnimatePresence>
-          {cursorHovered && cursorText && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8, x: 14, y: 14 }}
-              animate={{ opacity: 1, scale: 1, x: 18, y: 4 }}
-              exit={{ opacity: 0, scale: 0.8, x: 14, y: 14 }}
-              transition={{ duration: 0.2 }}
-              className="absolute left-full top-0 whitespace-nowrap bg-black/90 dark:bg-white/95 text-white dark:text-black border border-white/10 dark:border-black/10 px-2.5 py-0.5 rounded-lg font-mono text-[8px] font-black tracking-widest uppercase shadow-[0_4px_12px_rgba(0,0,0,0.25)]"
-            >
-              {cursorText}
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.div>
+        <span
+          ref={cursorTextRef}
+          className="absolute left-full top-1/2 -translate-y-1/2 ml-3 bg-black/90 dark:bg-white/95 text-white dark:text-black border border-white/10 dark:border-black/10 px-2.5 py-0.5 rounded-lg font-mono text-[8px] font-black tracking-widest uppercase shadow-[0_4px_12px_rgba(0,0,0,0.25)] whitespace-nowrap opacity-0 transition-opacity duration-200"
+        />
+      </div>
       
       {/* SLEEPIEST FLOATING AMBIENT HEALTH & WELLNESS ORBS */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">

@@ -174,5 +174,20 @@ html.lenis, html.lenis body {
   opacity: 1;
 }
 
-
-
+/* HIGH-END INTERACTIVE CURSOR ACCESSIBILITY & USABILITY FIXES */
+@media (min-width: 768px) {
+  html, 
+  body, 
+  input, 
+  textarea, 
+  select, 
+  button, 
+  a, 
+  [role="button"], 
+  .cursor-pointer, 
+  .noomo-magnetic,
+  iframe,
+  input::placeholder {
+    cursor: none !important;
+  }
+}

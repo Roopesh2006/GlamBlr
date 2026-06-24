@@ -149,7 +149,10 @@ export default function StyleQuiz({ isOpen, onClose, onSelectSalonToBook, salons
       <div className="absolute inset-0 bg-[#07070E] bg-opacity-80 backdrop-blur-md" onClick={onClose} />
 
       {/* Main glass card modal container */}
-      <div className="relative w-full max-w-2xl bg-[#0F0F1A] border border-[rgba(212,175,55,0.25)] rounded-2xl p-6 md:p-8 overflow-y-auto max-h-[90vh] shadow-[0_0_50px_rgba(212,175,55,0.25)] z-10 text-white flex flex-col justify-between">
+      <div 
+        data-lenis-prevent
+        className="relative w-full max-w-2xl bg-[#0F0F1A] border border-[rgba(212,175,55,0.25)] rounded-2xl p-6 md:p-8 overflow-y-auto max-h-[90vh] shadow-[0_0_50px_rgba(212,175,55,0.25)] z-10 text-white flex flex-col justify-between"
+      >
         
         {/* Header decoration */}
         <div className="flex items-center justify-between mb-6">

@@ -463,7 +463,10 @@ export default function AdminPortal({
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       
       {/* Container Card */}
-      <div className="bg-white dark:bg-[#12121E] border border-[#E1DBCE] dark:border-indigo-950/60 rounded-2xl w-full max-w-4xl h-[90vh] md:h-[82vh] flex flex-col overflow-hidden text-left shadow-2xl relative scale-in">
+      <div 
+        data-lenis-prevent
+        className="bg-white dark:bg-[#12121E] border border-[#E1DBCE] dark:border-indigo-950/60 rounded-2xl w-full max-w-4xl h-[90vh] md:h-[82vh] flex flex-col overflow-hidden text-left shadow-2xl relative scale-in"
+      >
         
         {/* Absolute exit button */}
         <button
@@ -514,7 +517,10 @@ export default function AdminPortal({
         </div>
 
         {/* Scrollable central content */}
-        <div className="flex-1 overflow-y-auto p-6 md:p-8">
+        <div 
+          data-lenis-prevent
+          className="flex-1 overflow-y-auto p-6 md:p-8"
+        >
 
           {/* TAB 1: JOIN AS PARTNER (GFORM WHATSAPP REDIRECT or TALLY EMBED) */}
           {activeTab === 'join' && (

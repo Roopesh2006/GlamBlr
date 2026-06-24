@@ -48,7 +48,10 @@ export default function BookingsDrawer({ isOpen, onClose, onRefreshTrigger }: Bo
       {/* Drawer Overlay */}
       <div className="absolute inset-0 bg-[#07070E] bg-opacity-70 backdrop-blur-sm" onClick={onClose} />
 
-      <div className="absolute top-0 right-0 bottom-0 w-full sm:max-w-md bg-[#0F0F1A] border-l border-[rgba(212,175,55,0.2)] shadow-2xl flex flex-col justify-between text-white animate-slideIn">
+      <div 
+        data-lenis-prevent
+        className="absolute top-0 right-0 bottom-0 w-full sm:max-w-md bg-[#0F0F1A] border-l border-[rgba(212,175,55,0.2)] shadow-2xl flex flex-col justify-between text-white animate-slideIn"
+      >
         
         {/* Drawer Header */}
         <div className="p-6 border-b border-white/5 flex items-center justify-between">
