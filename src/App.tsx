@@ -529,10 +529,7 @@ export default function App() {
           {/* [A] CINEMATIC VIDEO SCROLL HERO */}
           <VideoScrollHero
             onExploreClick={() => {
-              const target = document.getElementById('discovery_lounge_anchor');
-              if (target) {
-                target.scrollIntoView({ behavior: 'smooth' });
-              }
+              navigateTo('explore', '');
             }}
             onJoinClick={() => setIsAdminPortalOpen(true)}
             appDarkMode={appDarkMode}

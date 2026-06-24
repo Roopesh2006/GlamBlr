@@ -3,6 +3,13 @@ import { X, Sparkles, Smile, Flame, Settings, MapPin, Check, Heart, Shield } fro
 import { Salon } from '../types';
 import { LUX_SALONS } from '../data';
 
+export const getRealPriceText = (symbols: string) => {
+  if (symbols === '₹₹') return '₹1,000 - ₹3,000';
+  if (symbols === '₹₹₹') return '₹3,000 - ₹7,000';
+  if (symbols === '₹₹₹₹') return '₹7,000+';
+  return symbols || '₹1,000 - ₹3,000';
+};
+
 interface StyleQuizProps {
   isOpen: boolean;
   onClose: () => void;
@@ -33,7 +40,8 @@ export default function StyleQuiz({ isOpen, onClose, onSelectSalonToBook, salons
   if (!isOpen) return null;
 
   const handleSelectOption = (questionKey: string, value: string) => {
-    setAnswers((prev) => ({ ...prev, [questionKey]: value }));
+    const updatedAnswers = { ...answers, [questionKey]: value };
+    setAnswers(updatedAnswers);
     
     if (step < 5) {
       setStep((prev) => prev + 1);
@@ -42,17 +50,17 @@ export default function StyleQuiz({ isOpen, onClose, onSelectSalonToBook, salons
       setIsLoading(true);
       setTimeout(() => {
         setIsLoading(false);
-        calculateBestMatches();
+        calculateBestMatches(updatedAnswers);
       }, 3000);
     }
   };
 
-  const calculateBestMatches = () => {
+  const calculateBestMatches = (currentAnswers: Record<string, string>) => {
     // Generate a persona based on vibe
-    const vibe = answers.vibe || 'Natural Glow';
-    const concern = answers.concern || 'Color refresh';
-    const budget = answers.budget || '₹₹₹';
-    const area = answers.area || 'Anywhere';
+    const vibe = currentAnswers.vibe || 'Natural Glow';
+    const concern = currentAnswers.concern || 'Color refresh';
+    const budget = currentAnswers.budget || '₹₹₹';
+    const area = currentAnswers.area || 'Anywhere';
 
     let title = 'The Glow Goddess';
     let description = 'You embody pure classic luxury and radiant glamour. You look for elite service standards, nourishing botanical elixirs, and bespoke custom coloring.';
@@ -68,14 +76,18 @@ export default function StyleQuiz({ isOpen, onClose, onSelectSalonToBook, salons
       description = 'You seek deep inner tranquility, organic skin treatments, and holistic luxury. You value quiet spa cocoons and high-density blowouts.';
     }
 
-    // Filter and score all salons based on traits
-    const scoredSalons = salons.map((salon) => {
+    // Filter and score all salons based on traits - highly robust to prevent any crashes
+    const validSalons = (salons || []).filter(s => s && s.id);
+    const scoredSalons = validSalons.map((salon) => {
       let score = 70; // baseline
+
+      const salonArea = salon.area || '';
+      const salonPriceRange = salon.priceRange || '₹₹';
+      const isLuxury = salon.isLuxury || false;
 
       // Area bonus
       if (area !== 'Anywhere' && area !== 'Any') {
         // map answers areas (North BLR / South BLR / etc) to actual salon areas
-        const salonArea = salon.area;
         const matchesArea = 
           (area === 'North BLR' && salonArea === 'Banaswadi') ||
           (area === 'South BLR' && (salonArea === 'Koramangala' || salonArea === 'HSR Layout' || salonArea === 'Jayanagar')) ||
@@ -83,16 +95,15 @@ export default function StyleQuiz({ isOpen, onClose, onSelectSalonToBook, salons
         if (matchesArea) score += 15;
       }
 
-      // Budget match
-      if (salon.priceRange === budget) {
+      // Budget match - safe length check using fallback
+      if (salonPriceRange === budget) {
         score += 15;
-      } else if (Math.abs(salon.priceRange.length - budget.length) === 1) {
+      } else if (Math.abs(salonPriceRange.length - budget.length) === 1) {
         score += 5;
       }
 
       // Specialty / service category matchup
-      const hasBridalConcern = concern === 'Color refresh' || concern === 'Deep treatment';
-      if (salon.isLuxury && (vibe === 'Bold Glam' || vibe === 'Natural Glow')) {
+      if (isLuxury && (vibe === 'Bold Glam' || vibe === 'Natural Glow')) {
         score += 10;
       }
 
@@ -124,7 +135,7 @@ export default function StyleQuiz({ isOpen, onClose, onSelectSalonToBook, salons
           concern,
           budget,
           area,
-          matchedSalons: topMatches.map(m => ({ id: m.salon.id, name: m.salon.name, match: m.matchPercentage }))
+          matchedSalons: topMatches.map(m => ({ id: m.salon?.id || '', name: m.salon?.name || '', match: m.matchPercentage }))
         })
       }).catch(err => console.warn("Style DNA server sync delay:", err));
     } catch (e) {
@@ -282,16 +293,16 @@ export default function StyleQuiz({ isOpen, onClose, onSelectSalonToBook, salons
                 <h4 className="text-xl md:text-2xl font-serif text-[#FFF] mt-1 mb-6">Select your luxury quotient tier:</h4>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   {[
-                    { label: 'High-Street Chic', val: '₹₹', desc: 'Accessible master-level cuts' },
-                    { label: 'Premium Indulgence', val: '₹₹₹', desc: 'Signature elixirs & premium styling' },
-                    { label: 'Elite Pure Luxury', val: '₹₹₹₹', desc: 'Private boudoirs, imported gold leaf art' }
+                    { label: 'High-Street Chic', val: '₹₹', displayPrice: '₹1,000 - ₹3,000', desc: 'Accessible master-level cuts' },
+                    { label: 'Premium Indulgence', val: '₹₹₹', displayPrice: '₹3,000 - ₹7,000', desc: 'Signature elixirs & premium styling' },
+                    { label: 'Elite Pure Luxury', val: '₹₹₹₹', displayPrice: '₹7,000+', desc: 'Private boudoirs, imported gold leaf art' }
                   ].map((opt) => (
                     <button
                       key={opt.val}
                       onClick={() => handleSelectOption('budget', opt.val)}
                       className="group p-5 bg-[rgba(22,22,37,0.4)] hover:bg-[rgba(212,175,55,0.08)] border border-[rgba(212,175,55,0.15)] hover:border-[#D4AF37] rounded-xl text-center transition-all duration-200"
                     >
-                      <div className="text-2xl text-[#D4AF37] font-bold mb-2">{opt.val}</div>
+                      <div className="text-xl text-[#D4AF37] font-bold mb-2">{opt.displayPrice}</div>
                       <div className="font-serif font-semibold text-white group-hover:text-[#F5D97F] transition-colors mb-1">{opt.label}</div>
                       <div className="text-xs text-[#8888AA] group-hover:text-white/80 transition-colors">{opt.desc}</div>
                     </button>
@@ -366,7 +377,7 @@ export default function StyleQuiz({ isOpen, onClose, onSelectSalonToBook, salons
                         {matchPercentage}% compatibility Match
                       </div>
                     </div>
-                    <p className="text-xs text-[#8888AA] mt-1">{salon.area || "Bengaluru"} • Star Rating {salon.rating || 0} ★ • {salon.priceRange || "₹₹"}</p>
+                    <p className="text-xs text-[#8888AA] mt-1">{salon.area || "Bengaluru"} • Star Rating {salon.rating || 0} ★ • {getRealPriceText(salon.priceRange)}</p>
                     <p className="text-xs text-white/70 line-clamp-1 mt-1.5 italic">"{salon.description || ""}"</p>
                   </div>
                   <button

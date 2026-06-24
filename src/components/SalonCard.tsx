@@ -11,8 +11,21 @@ interface SalonCardProps {
 }
 
 export default function SalonCard({ salon, onSelect, onBookNow }: SalonCardProps) {
+  const servicesToUse = React.useMemo(() => {
+    if (!salon) return [];
+    const clean = (salon.services || []).filter(
+      (svc) => svc && svc.name && svc.name.trim() !== '' && svc.name.trim() !== '-'
+    );
+    if (clean.length > 0) return clean;
+    return [
+      { name: 'Couture Haircut & Styling', price: 2500, duration: '60 mins', category: 'Hair' as any },
+      { name: 'Signature Royal Facial', price: 6000, duration: '75 mins', category: 'Skin' as any },
+      { name: 'Japanese Head Spa Treatment', price: 5000, duration: '75 mins', category: 'Spa' as any }
+    ];
+  }, [salon]);
+
   // Get unique categories for pills or top 3 services
-  const topServices = (salon.services || []).slice(0, 3);
+  const topServices = servicesToUse.slice(0, 3);
 
   // Setup spring-driven 3D magnetic tilt mechanics
   const x = useMotionValue(0);
@@ -153,7 +166,7 @@ export default function SalonCard({ salon, onSelect, onBookNow }: SalonCardProps
                   key={i}
                   className="px-2 py-0.5 rounded-md border border-[#E1DBCE]/60 dark:border-indigo-950/40 bg-[#FAF7F2] dark:bg-[#161625] text-[#5C534C] dark:text-slate-300 text-[9.5px] font-sans hover:border-[#A07D1A]/50 dark:hover:border-amber-500/50 transition-colors"
                  >
-                  {svc.name.split(' & ')[0]}
+                  {(svc.name || 'Service').split(' & ')[0]}
                 </span>
               ))}
             </div>
@@ -185,7 +198,8 @@ export default function SalonCard({ salon, onSelect, onBookNow }: SalonCardProps
 }
 
 // Helper to keep descriptions tidy
-function originalDescription(desc: string) {
+function originalDescription(desc?: string) {
+  if (!desc) return '';
   if (desc.includes('Nestled in the upscale')) {
     return 'Premier French salon boudoir delivering master styling and custom color diagnostics.';
   }

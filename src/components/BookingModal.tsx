@@ -30,10 +30,24 @@ export default function BookingModal({
   const [bookingId, setBookingId] = useState<string>('');
   const [formError, setFormError] = useState<string>('');
 
+  const servicesToUse = React.useMemo(() => {
+    if (!salon) return [];
+    const clean = (salon.services || []).filter(
+      (svc) => svc && svc.name && svc.name.trim() !== '' && svc.name.trim() !== '-'
+    );
+    if (clean.length > 0) return clean;
+    return [
+      { name: 'Couture Haircut & Styling', price: 2500, duration: '60 mins', category: 'Hair' as any },
+      { name: 'Signature Royal Detoxing Facial', price: 6000, duration: '75 mins', category: 'Skin' as any },
+      { name: 'Japanese Head Spa Treatment', price: 5000, duration: '75 mins', category: 'Spa' as any },
+      { name: 'Bridal Couture Makeup Signature', price: 15000, duration: '180 mins', category: 'Bridal' as any }
+    ];
+  }, [salon]);
+
   useEffect(() => {
     if (isOpen) {
       setStep(1);
-      setSelectedService(initialService || (salon && salon.services[0]) || null);
+      setSelectedService(initialService || servicesToUse[0] || null);
       
       // Auto-populate tomorrow's date
       const tomorrow = new Date();
@@ -44,7 +58,7 @@ export default function BookingModal({
       setCustomerEmail('');
       setFormError('');
     }
-  }, [isOpen, initialService, salon]);
+  }, [isOpen, initialService, servicesToUse]);
 
   if (!isOpen || !salon) return null;
 
@@ -126,11 +140,22 @@ export default function BookingModal({
               to_name: customerName,
               customer_name: customerName,
               salon_name: salon.name,
+              salon: salon.name,
               service_name: selectedService?.name,
-              service_price: `₹${selectedService?.price.toLocaleString('en-IN')}`,
+              service: selectedService?.name,
+              serviceName: selectedService?.name,
+              service_price: `₹${(selectedService?.price ?? 0).toLocaleString('en-IN')}`,
+              total: `₹${(selectedService?.price ?? 0).toLocaleString('en-IN')}`,
+              price: `₹${(selectedService?.price ?? 0).toLocaleString('en-IN')}`,
+              total_price: `₹${(selectedService?.price ?? 0).toLocaleString('en-IN')}`,
               booking_date: selectedDate,
+              date: selectedDate,
+              bookingDate: selectedDate,
               booking_time: selectedTime,
+              time: selectedTime,
+              bookingTime: selectedTime,
               booking_id: newBookingId,
+              bookingId: newBookingId,
               customer_phone: customerEmail,
               customer_email: customerEmail,
               to_email: customerEmail,
@@ -195,7 +220,7 @@ export default function BookingModal({
           <div className="space-y-4">
             <h4 className="font-serif font-semibold text-lg text-white mb-3">Choose Your Desired Service:</h4>
             <div className="max-h-[300px] overflow-y-auto pr-1 space-y-2 select-service-list">
-              {salon.services.map((svc, idx) => (
+              {servicesToUse.map((svc, idx) => (
                 <label
                   key={idx}
                   className={`flex items-start justify-between p-4 rounded-xl border cursor-pointer transition-all duration-200 ${
@@ -221,7 +246,7 @@ export default function BookingModal({
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="font-serif font-bold text-[#D4AF37] text-lg">₹{svc.price.toLocaleString('en-IN')}</div>
+                    <div className="font-serif font-bold text-[#D4AF37] text-lg">₹{(svc.price ?? 0).toLocaleString('en-IN')}</div>
                     <span className="text-[10px] text-[#8888AA]">Incl. Taxes</span>
                   </div>
                 </label>
@@ -326,7 +351,7 @@ export default function BookingModal({
               <div className="h-0.5 bg-white/5 my-2"></div>
               <div className="flex justify-between items-baseline">
                 <span className="text-xs text-gray-400">Total Premium Sum</span>
-                <span className="text-lg text-[#D4AF37] font-serif font-bold">₹{selectedService?.price.toLocaleString('en-IN')}</span>
+                <span className="text-lg text-[#D4AF37] font-serif font-bold">₹{(selectedService?.price ?? 0).toLocaleString('en-IN')}</span>
               </div>
             </div>
 

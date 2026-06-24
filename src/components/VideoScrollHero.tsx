@@ -398,12 +398,7 @@ export default function VideoScrollHero({ onExploreClick, onJoinClick, appDarkMo
 
               <div className="pt-8 flex flex-col sm:flex-row items-center gap-3 justify-center relative z-10">
                 <button
-                  onClick={() => {
-                    const target = document.getElementById('discovery_lounge_anchor');
-                    if (target) {
-                      target.scrollIntoView({ behavior: 'smooth' });
-                    }
-                  }}
+                  onClick={onExploreClick}
                   className="w-full sm:w-auto px-8 py-4.5 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-white hover:to-white text-slate-950 text-xs uppercase font-extrabold tracking-widest rounded-full hover:scale-105 active:scale-98 transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-amber-400/10 noomo-magnetic"
                 >
                   Enter Discovery Lounge Deck <ArrowRight className="w-4 h-4 animate-pulse" />

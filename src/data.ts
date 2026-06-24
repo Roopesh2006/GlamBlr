@@ -322,5 +322,101 @@ export const LUX_SALONS: Salon[] = [
     reviews: [
       { id: 'r13', author: 'Rahul Krishnan', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=150', rating: 4, text: 'Great services and value-for-money packages. The staff is extremely competent and helpful.', date: '4 weeks ago', area: 'Banaswadi' }
     ]
+  },
+  {
+    id: '13',
+    name: 'The Hebbal Zenith Salon',
+    area: 'Hebbal',
+    rating: 4.92,
+    reviewCount: 84,
+    priceRange: '₹₹₹₹',
+    images: [
+      'https://images.unsplash.com/photo-1562322140-8baeececf3df?auto=format&fit=crop&q=80&w=800',
+      'https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&q=80&w=800'
+    ],
+    services: [
+      { name: 'Zen Silk Hair Spa & Hydration', price: 6000, duration: '75 mins', category: 'Spa' },
+      { name: 'Precision Minimalist Scissors Sculpt', price: 3500, duration: '60 mins', category: 'Hair' },
+      { name: 'Elite Collagen Booster Face Lift', price: 8500, duration: '80 mins', category: 'Skin' }
+    ],
+    openHours: '09:30 AM - 09:00 PM',
+    specialties: ['Minimalist Scissors Sculpt', 'Zen Silk Hydration', 'Scalp Meridian Therapy'],
+    isLuxury: true,
+    isFeatured: false,
+    description: 'Located in the ultra-exclusive lakeview high-rises of Hebbal, The Hebbal Zenith Salon is a masterpiece of quiet, zen-inspired luxury. Specializing in weightless organic haircuts, scalp diagnostics, and silk fiber reconstruction, we provide a sensory escape with pure high-altitude botanical essences and mountain teas.',
+    reviewsCount: 84,
+    reviews: []
+  },
+  {
+    id: '14',
+    name: 'Koramangala Edge Atelier',
+    area: 'Koramangala',
+    rating: 4.78,
+    reviewCount: 145,
+    priceRange: '₹₹',
+    images: [
+      'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&q=80&w=800',
+      'https://images.unsplash.com/photo-1595425970377-c9703cf48b6d?auto=format&fit=crop&q=80&w=800'
+    ],
+    services: [
+      { name: 'Edgy Razor Sculpt & Textured Crop', price: 1500, duration: '45 mins', category: 'Hair' },
+      { name: 'Vivid Neon Balayage Root Retouch', price: 2800, duration: '90 mins', category: 'Hair' },
+      { name: 'Chic Matte Shellac Finish manicure', price: 1200, duration: '40 mins', category: 'Nails' }
+    ],
+    openHours: '10:00 AM - 09:00 PM',
+    specialties: ['Razor Fringe Sculpting', 'Vivid Root Tinting', 'Punk Gloss Overlays'],
+    isLuxury: false,
+    isFeatured: false,
+    description: 'Koramangala’s most daring hair playground. We focus on razor fringe sculpting, textured messy shags, and custom pastel hair color transformations. Perfect for high-contrast creatives and young tech-pioneers looking for bold self-expression.',
+    reviewsCount: 145,
+    reviews: []
+  },
+  {
+    id: '15',
+    name: 'Maison de l\'Indigo',
+    area: 'Banaswadi',
+    rating: 4.85,
+    reviewCount: 110,
+    priceRange: '₹₹₹',
+    images: [
+      'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&q=80&w=800',
+      'https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?auto=format&fit=crop&q=80&w=800'
+    ],
+    services: [
+      { name: 'Ayurvedic Hair & Scalp Restoration', price: 3800, duration: '90 mins', category: 'Spa' },
+      { name: 'Organic Indigo Dye & Balayage Glow', price: 5500, duration: '120 mins', category: 'Hair' },
+      { name: 'Silk Hydrating Hair Polish Ritual', price: 2500, duration: '60 mins', category: 'Hair' }
+    ],
+    openHours: '09:00 AM - 08:30 PM',
+    specialties: ['Ayurvedic Scalp Restructure', 'Natural Botanical Toning', 'Anti-Frizz Silk Polish'],
+    isLuxury: true,
+    isFeatured: false,
+    description: 'A green biological sanctuary in Banaswadi. Maison de l’Indigo fuses ancient Indian botanical traditions with high-performance Parisian hair diagnostics. We use cold-pressed organic indigo, pure sandalwood elixirs, and steam therapies for a pristine, long-lasting natural glow.',
+    reviewsCount: 110,
+    reviews: []
+  },
+  {
+    id: '16',
+    name: 'Vogue Glam Boudoir',
+    area: 'Jayanagar',
+    rating: 4.91,
+    reviewCount: 167,
+    priceRange: '₹₹₹',
+    images: [
+      'https://images.unsplash.com/photo-1607613009820-a29f7bb81c04?auto=format&fit=crop&q=80&w=800',
+      'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&q=80&w=800'
+    ],
+    services: [
+      { name: 'Couture Tape-In Hair Extensions', price: 12000, duration: '150 mins', category: 'Hair' },
+      { name: 'High-Density Hollywood Volume Blowout', price: 3500, duration: '75 mins', category: 'Hair' },
+      { name: 'Glow-Infused Airbrush Celebrity Makeup', price: 8000, duration: '90 mins', category: 'Bridal' }
+    ],
+    openHours: '10:00 AM - 09:00 PM',
+    specialties: ['Ultra-Seamless Extensions', 'High-Density Blowouts', 'Celebrity Glam Contouring'],
+    isLuxury: true,
+    isFeatured: true,
+    description: 'Located in the elegant avenues of Jayanagar, Vogue Glam Boudoir delivers show-stopping glamour for Jayanagar’s absolute elite. Specializing in high-density Hollywood bouncy blowouts, ultra-seamless micro-ring extensions, and premium airbrush bridal makeups.',
+    reviewsCount: 167,
+    reviews: []
   }
 ];

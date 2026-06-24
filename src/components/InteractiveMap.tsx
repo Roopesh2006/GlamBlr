@@ -444,7 +444,7 @@ export default function InteractiveMap({
                     <div className="border-t border-white/5 pt-1.5">
                       <p className="text-[8.5px] font-mono text-slate-400 uppercase font-semibold">Specialties</p>
                       <p className="text-[9.5px] text-amber-100 font-serif italic truncate mt-0.5">
-                        {hoveredSalon.specialties.slice(0, 2).join(' • ')}
+                        {(hoveredSalon.specialties || []).slice(0, 2).join(' • ')}
                       </p>
                     </div>
                   </div>

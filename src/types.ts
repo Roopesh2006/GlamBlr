@@ -18,7 +18,7 @@ export interface Service {
 export interface Salon {
   id: string;
   name: string;
-  area: 'Indiranagar' | 'Koramangala' | 'Whitefield' | 'Jayanagar' | 'HSR Layout' | 'Banaswadi';
+  area: 'Indiranagar' | 'Koramangala' | 'Whitefield' | 'Jayanagar' | 'HSR Layout' | 'Banaswadi' | 'Hebbal';
   rating: number;
   reviewCount: number;
   priceRange: '₹₹' | '₹₹₹' | '₹₹₹₹';

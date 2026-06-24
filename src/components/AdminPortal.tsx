@@ -454,7 +454,7 @@ export default function AdminPortal({
 
   // Owner finances metrics
   const ownerRevenue = useMemo(() => {
-    return ownerBookings.reduce((sum, b) => b.status === 'confirmed' ? sum + b.service.price : sum, 0);
+    return ownerBookings.reduce((sum, b) => b.status === 'confirmed' ? sum + (b.service?.price ?? 0) : sum, 0);
   }, [ownerBookings]);
 
   if (!isOpen) return null;
@@ -786,13 +786,13 @@ export default function AdminPortal({
                                 <div className="text-[9.5px] text-slate-400">{b.date}</div>
                               </td>
                               <td className="p-3">
-                                <div>{b.service.name}</div>
+                                <div>{b.service?.name || 'Custom Service'}</div>
                                 <span className="px-1.5 py-0.5 mt-1 inline-block bg-slate-100 dark:bg-indigo-950/30 text-slate-500 dark:text-slate-400 text-[8.5px] font-mono font-bold uppercase rounded">
-                                  {b.service.category} • {b.service.duration}
+                                  {b.service?.category || 'Custom'} • {b.service?.duration || 'N/A'}
                                 </span>
                               </td>
                               <td className="p-3 font-mono text-[10px]">{b.customerPhone}</td>
-                              <td className="p-3 font-mono font-bold text-slate-900 dark:text-white">₹{b.service.price}</td>
+                              <td className="p-3 font-mono font-bold text-slate-900 dark:text-white">₹{b.service?.price ?? 0}</td>
                               <td className="p-3">
                                 {b.status === 'confirmed' ? (
                                   <div className="flex items-center gap-1.5">

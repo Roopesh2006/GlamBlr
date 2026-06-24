@@ -117,10 +117,10 @@ export default function ExploreLounge({
       if (cleanedQ) {
         items = items.filter((s) => {
           return (
-            s.name.toLowerCase().includes(cleanedQ) ||
-            s.area.toLowerCase().includes(cleanedQ) ||
-            s.description.toLowerCase().includes(cleanedQ) ||
-            s.specialties.some((spec) => spec.toLowerCase().includes(cleanedQ))
+            (s.name || '').toLowerCase().includes(cleanedQ) ||
+            (s.area || '').toLowerCase().includes(cleanedQ) ||
+            (s.description || '').toLowerCase().includes(cleanedQ) ||
+            (Array.isArray(s.specialties) && s.specialties.some((spec) => spec && spec.toLowerCase().includes(cleanedQ)))
           );
         });
       }
@@ -133,7 +133,7 @@ export default function ExploreLounge({
 
     // 3. Service category
     if (service !== 'All') {
-      items = items.filter((s) => s.services.some((svc) => svc.category === service));
+      items = items.filter((s) => Array.isArray(s.services) && s.services.some((svc) => svc.category === service));
     }
 
     // 4. Price range

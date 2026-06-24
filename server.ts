@@ -5,6 +5,7 @@ import express from "express";
 import fs from "fs";
 import path from "path";
 import { createServer as createViteServer } from "vite";
+import { LUX_SALONS } from "./src/data";
 
 const app = express();
 const PORT = 3000;
@@ -44,150 +45,7 @@ if (supabaseUrl && supabaseServiceKey) {
 const DB_PATH = path.join(process.cwd(), "db.json");
 
 // Define Initial Salons to match data.ts
-const INITIAL_SALONS = [
-  {
-    id: "1",
-    name: "Maison de l’Or",
-    area: "Indiranagar",
-    rating: 4.9,
-    reviewCount: 342,
-    priceRange: "₹₹₹₹",
-    images: [
-      "https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&q=80&w=800",
-      "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&q=80&w=800"
-    ],
-    services: [
-      { name: "Balayage & Couture Toning", price: 9500, duration: "180 mins", category: "Hair" },
-      { name: "Kérastase Chronologiste Caviar Rite", price: 6500, duration: "90 mins", category: "Hair" },
-      { name: "Bridal Glow-Up Signature Makeup", price: 25000, duration: "240 mins", category: "Bridal" },
-      { name: "Caviar Radiance Luxury Facial", price: 7500, duration: "75 mins", category: "Skin" },
-      { name: "Nail extensions with 24K Gold Leaf", price: 4500, duration: "90 mins", category: "Nails" }
-    ],
-    openHours: "09:00 AM - 09:00 PM",
-    specialties: ["French Balayage", "Hair Botox", "High-End Bridal Makeup"],
-    isLuxury: true,
-    isFeatured: true,
-    description: "Nestled in the upscale heart of Indiranagar, Maison de l’Or is Bangalore’s premier salon sanctuary. Drawing inspiration from luxury Parisian boudoirs, we deliver absolute perfection using premium elixir treatments, custom color diagnostics, and master-crafted styles.",
-    reviewsCount: 342,
-    reviews: [
-      { id: "r1", author: "Ananya Sharma", avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=150", rating: 5, text: "The absolute pinnacle of luxury. The gold leaf manicures and Kérastase rituals are unmatched. Truly world-class services!", date: "2 days ago", area: "Indiranagar" }
-    ]
-  },
-  {
-    id: "2",
-    name: "Aura Premium Wellness",
-    area: "Koramangala",
-    rating: 4.8,
-    reviewCount: 218,
-    priceRange: "₹₹₹",
-    images: [
-      "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&q=80&w=800",
-      "https://images.unsplash.com/photo-1562322140-8baeececf3df?auto=format&fit=crop&q=80&w=800"
-    ],
-    services: [
-      { name: "Luxury Deep Tissue Massage", price: 4800, duration: "90 mins", category: "Spa" },
-      { name: "HydraFacial Platinum Glow", price: 6200, duration: "60 mins", category: "Skin" },
-      { name: "Aroma Infused Steam & Soak", price: 3000, duration: "45 mins", category: "Spa" }
-    ],
-    openHours: "10:00 AM - 08:30 PM",
-    specialties: ["Luxury Spa Treatments", "HydraFacials", "Collagen Therapies"],
-    isLuxury: true,
-    isFeatured: true,
-    description: "Aura Premium Wellness offers a transcendent escape from the city’s concrete noise. Unwind in private state-of-the-art therapist rooms with customizable aromatherapy profiles, state-of-the-art oxygen-infused showers, and elite skincare solutions.",
-    reviewsCount: 218,
-    reviews: []
-  },
-  {
-    id: "3",
-    name: "Gilded Groom Barbers",
-    area: "Whitefield",
-    rating: 4.7,
-    reviewCount: 154,
-    priceRange: "₹₹",
-    images: [
-      "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&q=80&w=800",
-      "https://images.unsplash.com/photo-1621605815971-fbc98d665033?auto=format&fit=crop&q=80&w=800"
-    ],
-    services: [
-      { name: "Sandalwood Razor Beard Sculpt", price: 1800, duration: "45 mins", category: "Grooming" },
-      { name: "Charcoal Charcoal Hair Restoration", price: 3500, duration: "60 mins", category: "Grooming" }
-    ],
-    openHours: "08:00 AM - 10:00 PM",
-    specialties: ["Sandalwood Edge Shave", "Elite Hair Scapes", "Nose & Ears Waxing"],
-    isLuxury: true,
-    isFeatured: true,
-    description: "Located within the tech corridor of Whitefield, Gilded Groom Barbers provides state-of-the-art executive aesthetics. Relax in genuine vintage leather chairs while our certified master barbers sculpt coordinates utilizing fine high-gravity sandalwood oils.",
-    reviewsCount: 154,
-    reviews: []
-  },
-  {
-    id: "4",
-    name: "The Indigo Alchemist",
-    area: "Jayanagar",
-    rating: 4.95,
-    reviewCount: 98,
-    priceRange: "₹₹₹",
-    images: [
-      "https://images.unsplash.com/photo-1595425970377-c9703cf48b6d?auto=format&fit=crop&q=80&w=800",
-      "https://images.unsplash.com/photo-1607613009820-a29f7bb81c04?auto=format&fit=crop&q=80&w=800"
-    ],
-    services: [
-      { name: "Japanese Head Spa & Therapy", price: 4200, duration: "75 mins", category: "Spa" },
-      { name: "Organic Root Pigmentation", price: 5800, duration: "120 mins", category: "Hair" }
-    ],
-    openHours: "09:30 AM - 08:30 PM",
-    specialties: ["Japanese Head Massage", "Balayage Artisanry", "Organic Infusions"],
-    isLuxury: true,
-    isFeatured: false,
-    description: "Nestled among green, historical Jayanagar, The Indigo Alchemist is a haven for plant-derived premium restoration and slow fashion hair. We use only biological active elixirs alongside traditional East Asian scalp micro-steamers.",
-    reviewsCount: 98,
-    reviews: []
-  },
-  {
-    id: "5",
-    name: "Crown & Coat Salon",
-    area: "HSR Layout",
-    rating: 4.65,
-    reviewCount: 76,
-    priceRange: "₹₹",
-    images: [
-      "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&q=80&w=800"
-    ],
-    services: [
-      { name: "Keratin Deep Repair Cure", price: 3200, duration: "90 mins", category: "Hair" },
-      { name: "Royal Shellac Metallic Gel Art", price: 1500, duration: "45 mins", category: "Nails" }
-    ],
-    openHours: "10:00 AM - 09:00 PM",
-    specialties: ["Keratin Restoration", "Gold Gel Overlay", "Duo Quick Shifting"],
-    isLuxury: true,
-    isFeatured: false,
-    description: "Welcome to HSR Layout’s premium quick-curated salon experience. Our focus at Crown & Coat is delivering elite beauty coordinates for busy professionals. Walk in exhausted, leave radiant in under ninety minutes.",
-    reviewsCount: 76,
-    reviews: []
-  },
-  {
-    id: "6",
-    name: "Maison de l'Homme",
-    area: "Banaswadi",
-    rating: 4.88,
-    reviewCount: 112,
-    priceRange: "₹₹₹",
-    images: [
-      "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&q=80&w=800"
-    ],
-    services: [
-      { name: "Elite Haircut & Scalp Detox", price: 2200, duration: "60 mins", category: "Grooming" },
-      { name: "Hot Stone Stress Melting Ritual", price: 4500, duration: "90 mins", category: "Spa" }
-    ],
-    openHours: "09:00 AM - 09:00 PM",
-    specialties: ["Scalp Micro-Detox", "Sandalwood Beard Scalp", "Japanese Head Spa"],
-    isLuxury: true,
-    isFeatured: false,
-    description: "Maison de l'Homme is a boutique luxury concept sanctuary specifically for executive male beauty and grooming in Banaswadi. Complete with high-contrast obsidian backplanes, comfortable leather pods, and premium single-malt tasting logs.",
-    reviewsCount: 112,
-    reviews: []
-  }
-];
+const INITIAL_SALONS = LUX_SALONS;
 
 // Seed raw database with mock data if not existing
 const loadDB = () => {
@@ -222,7 +80,7 @@ const loadDB = () => {
     const data = JSON.parse(raw);
     
     // Auto-migrate old generic salon lists to luxury catalog
-    if (!data.salons || data.salons.length === 0 || (data.salons[0] && data.salons[0].name === "Luxe Hair Studio")) {
+    if (!data.salons || data.salons.length < INITIAL_SALONS.length || (data.salons[0] && data.salons[0].name === "Luxe Hair Studio")) {
       data.salons = INITIAL_SALONS;
     }
 
